@@ -9,25 +9,33 @@ definePageMeta({
 const nuxtApp = useNuxtApp()
 const { account, id } = nuxtApp.$appwrite
 // console.log(useAppwriteUser().then(res => console.log(res.value)))
-const profile = ref(null)
-const curr = useUserStore()
+const curr = ref(null)
+const store = useUserStore()
+const profile = useUserStore().profile
 
 
 watchEffect(async () => {
-    const usser = await account.get()
+    try {
+        const usser = await account.get()
 
-    const { data, error, pending } = await useFetch("/api/getLoggedInUserPhotos", {
-        method: "GET",
-        query: {
-            userId: usser.$id
-        }
-    })
+        const data = await $fetch("/api/getLoggedInUserPhotos", {
+            method: "GET",
+            query: {
+                userId: usser.$id
+            }
+        })
 
-    profile.value = data?.value
-    console.log("usser", usser)
-    console.log("data", profile?.value)
+        curr.value = data
+    } catch (error) {
+        console.log(error)
+    }
 })
 
+const logut = async () => {
+    await store.logout()
+    // useRouter().push("/login")
+    // await navigateTo("/login")
+}
 
 
 </script>
@@ -41,7 +49,8 @@ watchEffect(async () => {
                     alt="@radix-vue" />
                 <AvatarFallback>CN</AvatarFallback>
             </Avatar>
-            <h2 v-if="profile" class="font-[Arimo]">{{ profile }}</h2>
+
+            <h2 v-if="profile" class="font-[Arimo]">{{ profile.username }}</h2>
             <!-- <p>{{ data }}</p> -->
             <div class="space-x-2 font-[Poppins] font-bold">
                 <ClientOnly>
@@ -51,11 +60,12 @@ watchEffect(async () => {
                     <Button as-child>
                         <NuxtLink to="/upload">Upload</NuxtLink>
                     </Button>
+                    <Button variant="secondary" @click="store.logout">Logout</Button>
                 </ClientOnly>
             </div>
         </main>
         <section id="user-images">
-            <div v-if="profile" v-for="photo in profile">
+            <div v-if="curr" v-for="photo in curr">
                 <div>
                     <NuxtImg height="max" width="200" :src="photo.url" />
                     <p>{{ photo.title }}</p>

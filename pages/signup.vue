@@ -31,7 +31,8 @@ const form = useForm({
 const onSubmit = form.handleSubmit(async (values) => {
   console.log("Submitted", values)
   try {
-    const created = await account.create(id.unique(), values.email, values.password)
+    // await account.create(id.unique(), values.email, values.password)
+    const created = await useUserStore().signUpWithEmailAndPassword(id.unique(), values.email, values.password)
     console.log(created)
   } catch (error) {
     console.error(error)

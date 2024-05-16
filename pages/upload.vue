@@ -11,6 +11,10 @@ import {
 } from "@/components/ui/card"
 
 
+definePageMeta({
+    middleware: 'auth',
+})
+
 const show = ref(false)
 const isLoading = ref(false)
 const picture = ref('/')
@@ -20,14 +24,14 @@ const upload = async () => {
     isLoading.value = true
     let image = document.querySelector('#picture')?.files[0]
     const baseImage = await fileToBase64(image)
-    const userId = await useAppwriteUser()
+    const userId = useUserStore().user?.$id
 
     const data = await $fetch('/api/upload', {
         method: 'POST',
         body: {
             name: name.value,
             image: baseImage,
-            userId: userId.$id
+            userId: userId
         }
     })
     show.value = false

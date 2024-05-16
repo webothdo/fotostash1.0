@@ -2,7 +2,8 @@
 
 
 definePageMeta({
-    path: '/:user([@]\\w+)',
+    path: '/:user([@][\\w+\\-+]+)'
+    // path: '/:user([@]\\w+)',
 })
 
 
@@ -16,29 +17,26 @@ console.log(username.trim())
 
 const { data } = await useFetch(`/api/profile/${username}`)
 
+const { data: photos } = await useFetch("/api/profile/photos", {
+    method: "GET",
+    query: {
+        profileId: data?.value?.id
+    }
+})
+
+console.log(photos?.value)
+
 console.log(data?.value)
 
 if (!data?.value) {
     console.log("Not found")
-} else {
-    profile.value = data?.value
 }
-
-
 
 
 </script>
 
 <template>
     <div>
-        <nav class="flex justify-between items-center px-4 pt-5">
-            <p class="text-3xl font-bold">fs.</p>
-            <Avatar>
-                <AvatarImage src="https://github.com/radix-vue.png" alt="@radix-vue" />
-                <AvatarFallback>CN</AvatarFallback>
-            </Avatar>
-        </nav>
-
         <main class="w-full flex flex-col items-center gap-2 mt-10">
             <Avatar class="h-[150px] w-[150px]">
                 <AvatarImage
@@ -46,15 +44,15 @@ if (!data?.value) {
                     alt="@radix-vue" />
                 <AvatarFallback>CN</AvatarFallback>
             </Avatar>
-            <h2 v-if="profile" class="font-[Arimo]">{{ profile.username }}</h2>
-            <div class="space-x-2 font-[Poppins] font-bold">
-                <ClientOnly>
-                    <Button variant="outline">Edit Profile</Button>
-                    <Button as-child>
-                        <NuxtLink to="/upload">Upload</NuxtLink>
-                    </Button>
-                </ClientOnly>
-            </div>
+            <h2 v-if="data" class="font-[Arimo]">{{ data?.username }}</h2>
+
         </main>
+        <section id="user-images">
+            <p v-if="!photos">This user does not have any photos</p>
+            <div v-else v-for="photo in photos">
+                <NuxtImg height="max" width="200" :src="photo.url" />
+                <p>{{ photo.title }}</p>
+            </div>
+        </section>
     </div>
 </template>

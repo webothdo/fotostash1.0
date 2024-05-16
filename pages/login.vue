@@ -12,6 +12,10 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 
+definePageMeta({
+  middleware: "auth",
+})
+
 const nuxtApp = useNuxtApp()
 const { account, id } = nuxtApp.$appwrite
 
@@ -31,8 +35,10 @@ const form = useForm({
 const onSubmit = form.handleSubmit(async (values) => {
   console.log("Submitted", values)
   try {
-    const logged = await account.createEmailPasswordSession(values.email, values.password)
+    // const logged = await account.createEmailPasswordSession(values.email, values.password)
+    const logged = await useUserStore().loginWithEmailAndPassword(values.email, values.password)
     console.log(logged)
+    // navigateTo({ path: "/profile" })
   } catch (error) {
     console.error(error)
   }
@@ -75,7 +81,7 @@ const onSubmit = form.handleSubmit(async (values) => {
       </form>
       <div class="mt-4 text-center text-sm">
         Don't have an account?
-        <NuxtLink to="#" class="underline">
+        <NuxtLink to="/signup" class="underline">
           Sign up
         </NuxtLink>
       </div>
