@@ -8,9 +8,12 @@
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
-    "dgenerate": "drizzle-kit generate:sqlite",
-    "dpush": "drizzle-kit push:sqlite",
-    "dkit": "drizzle-kit studio"
+    "dgenerate": "drizzle-kit generate",
+    "dmigrate": "drizzle-kit migrate",
+    "dpush": "drizzle-kit push",
+    "dkit": "drizzle-kit studio",
+    "ddrop": "drizzle-kit drop",
+    "dup": "drizzle-kit up"
   },
   "dependencies": {
     "@libsql/client": "^0.5.6",
@@ -22,7 +25,7 @@
     "appwrite": "^14.0.1",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.0",
-    "drizzle-orm": "^0.29.5",
+    "drizzle-orm": "^0.30.10",
     "file64": "^1.0.3",
     "imagekit": "^5.0.1",
     "nuxt": "^3.11.2",
@@ -40,7 +43,7 @@
   },
   "devDependencies": {
     "@nuxtjs/tailwindcss": "^6.12.0",
-    "drizzle-kit": "^0.20.17",
+    "drizzle-kit": "^0.21.2",
     "typescript": "^5.4.5"
   }
 }

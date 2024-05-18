@@ -1,11 +1,18 @@
+CREATE TABLE `approved_photo` (
+	`id` text PRIMARY KEY NOT NULL,
+	`created_at` text DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+--> statement-breakpoint
 CREATE TABLE `photo` (
 	`id` text PRIMARY KEY NOT NULL,
 	`user_id` text NOT NULL,
 	`title` text,
 	`url` text NOT NULL,
-	`profile_id` text,
+	`profile_id` text NOT NULL,
+	`approved_photo_id` text,
 	`created_at` text DEFAULT CURRENT_TIMESTAMP NOT NULL,
-	FOREIGN KEY (`profile_id`) REFERENCES `profile`(`id`) ON UPDATE no action ON DELETE no action
+	FOREIGN KEY (`profile_id`) REFERENCES `profile`(`id`) ON UPDATE no action ON DELETE cascade,
+	FOREIGN KEY (`approved_photo_id`) REFERENCES `approved_photo`(`id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
 CREATE TABLE `profile` (
