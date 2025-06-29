@@ -1,5 +1,5 @@
 import { and, eq } from "drizzle-orm";
-import { photo } from "~/server/database/schema";
+import { photo } from "~~/server/database/schema";
 
 //returns all photos that needs approval
 

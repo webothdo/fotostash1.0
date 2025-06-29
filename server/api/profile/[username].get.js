@@ -1,5 +1,5 @@
 import { eq } from "drizzle-orm";
-import { profile } from "~/server/database/schema";
+import { profile } from "~~/server/database/schema";
 export default defineEventHandler(async (event) => {
   const username = getRouterParam(event, "username");
 

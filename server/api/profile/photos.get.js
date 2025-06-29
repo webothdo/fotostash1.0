@@ -1,5 +1,5 @@
 import { eq } from "drizzle-orm";
-import { photo } from "~/server/database/schema";
+import { photo } from "~~/server/database/schema";
 
 export default defineEventHandler(async (event) => {
   const query = getQuery(event);
