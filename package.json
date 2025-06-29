@@ -28,7 +28,7 @@
     "drizzle-orm": "^0.30.10",
     "file64": "^1.0.3",
     "imagekit": "^5.0.1",
-    "nuxt": "^3.11.2",
+    "nuxt": "^3.17.5",
     "pinia": "^2.1.7",
     "radix-vue": "^1.7.1",
     "shadcn-nuxt": "^0.10.2",
