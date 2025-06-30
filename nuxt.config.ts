@@ -17,6 +17,8 @@ export default defineNuxtConfig({
     plugins: [tailwindcss()],
   },
   runtimeConfig: {
+    betterAuthSecret: process.env.BETTER_AUTH_SECRET,
+    betterAuthUrl: process.env.BETTER_AUTH_URL,
     public: {
       appwriteEndpoint: process.env.APPWRITE_ENDPOINT,
       appwriteProjectId: process.env.APPWRITE_PROJECT_ID,

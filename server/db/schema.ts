@@ -1,9 +1,14 @@
 import { sql } from "drizzle-orm";
 import { text, sqliteTable, integer } from "drizzle-orm/sqlite-core";
+import { user } from "./authSchema";
 
 export const profile = sqliteTable("profile", {
   id: text("id").primaryKey(),
-  userId: text("user_id").unique().notNull(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id, {
+      onDelete: "cascade",
+    }),
   username: text("username").unique().notNull(),
   bio: text("bio"),
   createdAt: text("created_at")
@@ -24,7 +29,7 @@ export const photo = sqliteTable("photo", {
   featured: integer("featured", { mode: "boolean" }).default(false),
   profileId: text("profile_id")
     .references(() => profile.id, {
-      onDelete: "cascade",
+      onDelete: "no action",
     })
     .notNull(),
   createdAt: text("created_at")

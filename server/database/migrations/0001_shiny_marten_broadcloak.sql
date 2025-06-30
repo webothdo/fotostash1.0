@@ -1,1 +1,0 @@
-ALTER TABLE `photo` ADD `approved` integer DEFAULT false;

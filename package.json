@@ -13,9 +13,11 @@
     "db:push": "bunx drizzle-kit push",
     "db:studio": "bunx drizzle-kit studio",
     "db:drop": "bunx drizzle-kit drop",
-    "db:up": "bunx drizzle-kit up"
+    "db:up": "bunx drizzle-kit up",
+    "auth:generate": "bunx @better-auth/cli generate --config server/lib/auth.ts --output server/db/authSchema.ts -y"
   },
   "dependencies": {
+    "@better-auth/cli": "^1.2.12",
     "@libsql/client": "^0.5.6",
     "@nuxt/image": "^1.6.0",
     "@pinia/nuxt": "^0.5.1",
@@ -24,12 +26,14 @@
     "@vee-validate/zod": "^4.15.1",
     "@vueuse/core": "^13.4.0",
     "appwrite": "^14.0.1",
+    "better-auth": "^1.2.12",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "drizzle-orm": "^0.30.10",
     "file64": "^1.0.3",
     "imagekit": "^5.0.1",
     "lucide-vue-next": "^0.525.0",
+    "nanoid": "^5.1.5",
     "nuxt": "^3.17.5",
     "pinia": "^2.1.7",
     "radix-vue": "^1.7.1",
