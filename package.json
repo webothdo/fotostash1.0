@@ -8,12 +8,12 @@
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
-    "dgenerate": "drizzle-kit generate",
-    "dmigrate": "drizzle-kit migrate",
-    "dpush": "drizzle-kit push",
-    "dkit": "drizzle-kit studio",
-    "ddrop": "drizzle-kit drop",
-    "dup": "drizzle-kit up"
+    "db:gen": "bunx drizzle-kit generate",
+    "db:migrate": "bunx drizzle-kit migrate",
+    "db:push": "bunx drizzle-kit push",
+    "db:studio": "bunx drizzle-kit studio",
+    "db:drop": "bunx drizzle-kit drop",
+    "db:up": "bunx drizzle-kit up"
   },
   "dependencies": {
     "@libsql/client": "^0.5.6",
@@ -47,7 +47,7 @@
     "zod": "^3.25.67"
   },
   "devDependencies": {
-    "drizzle-kit": "^0.21.2",
+    "drizzle-kit": "^0.21.4",
     "typescript": "^5.8.3"
   }
 }
