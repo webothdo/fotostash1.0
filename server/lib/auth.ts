@@ -1,4 +1,3 @@
-import type { H3Event } from "h3";
 import { betterAuth } from "better-auth";
 import { admin, username } from "better-auth/plugins";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
@@ -87,20 +86,3 @@ export const auth = betterAuth({
     admin(),
   ],
 });
-
-// export const useServerAuth = () => {
-//   if (runtimeConfig.preset == "node-server") {
-//     return auth;
-//   } else {
-//     return auth;
-//   }
-// };
-
-// export const getServerAuthSession = async (event: H3Event) => {
-//   const headers = event.headers;
-//   const serverAuth = useServerAuth();
-//   const session = await serverAuth.api.getSession({
-//     headers,
-//   });
-//   return session;
-// };

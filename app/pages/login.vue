@@ -1,11 +1,10 @@
-<script setup>
+<script setup lang="ts">
 import { useForm } from "vee-validate";
 import { toTypedSchema } from "@vee-validate/zod";
 import * as z from "zod";
 
 import {
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -15,6 +14,9 @@ import {
 definePageMeta({
   middleware: "auth",
 });
+
+const oAuthLoading = ref(false);
+const loginLoading = ref(false);
 
 const formSchema = toTypedSchema(
   z.object({
@@ -32,9 +34,9 @@ const form = useForm({
 });
 
 const onSubmit = form.handleSubmit(async (values) => {
-  console.log("Submitted", values);
+  loginLoading.value = true;
   try {
-    const logged = await useAuth().signIn({
+    const logged = await useAuth().signIn.email({
       email: values.email,
       password: values.password,
     });
@@ -42,7 +44,21 @@ const onSubmit = form.handleSubmit(async (values) => {
   } catch (error) {
     console.error(error);
   }
+  loginLoading.value = false;
 });
+
+const signInWithGithub = async () => {
+  oAuthLoading.value = true;
+  try {
+    const logged = await useAuth().signIn.social({
+      provider: "github",
+    });
+    console.log(logged);
+  } catch (error) {
+    console.error(error);
+  }
+  oAuthLoading.value = false;
+};
 </script>
 <template>
   <div class="flex flex-col items-center justify-center h-full">
@@ -73,9 +89,9 @@ const onSubmit = form.handleSubmit(async (values) => {
         <FormField name="password" v-slot="{ componentField }">
           <FormItem class="space-y-2">
             <FormLabel class="font-semibold">Password</FormLabel>
-            <NuxtLink to="#" class="text-sm underline ml-[80px]"
+            <!-- <NuxtLink to="#" class="text-sm underline ml-[80px]"
               >Forgot your password?</NuxtLink
-            >
+            > -->
             <FormControl>
               <Input
                 type="password"

@@ -1,11 +1,10 @@
-<script setup>
+<script setup lang="ts">
 import { useForm } from "vee-validate";
 import { toTypedSchema } from "@vee-validate/zod";
 import * as z from "zod";
 
 import {
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -34,8 +33,7 @@ const form = useForm({
 const onSubmit = form.handleSubmit(async (values) => {
   console.log("Submitted", values);
   try {
-    // await account.create(id.unique(), values.email, values.password)
-    const created = await useAuth().signUp({
+    const created = await useAuth().signUp.email({
       email: values.email,
       password: values.password,
     });

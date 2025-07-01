@@ -54,9 +54,6 @@ export function useAuth() {
     loggedIn: computed(() => !!session.value),
     signIn: client.signIn,
     signUp: client.signUp,
-    signInWithGithub: client.signIn.social({
-      provider: "github",
-    }),
     forgetPassword: client.forgetPassword,
     resetPassword: client.resetPassword,
     sendVerificationEmail: client.sendVerificationEmail,
