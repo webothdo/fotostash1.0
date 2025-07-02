@@ -10,6 +10,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { toast } from "vue-sonner";
 
 definePageMeta({
   middleware: "auth",
@@ -35,28 +36,42 @@ const form = useForm({
 
 const onSubmit = form.handleSubmit(async (values) => {
   loginLoading.value = true;
-  try {
-    const logged = await useAuth().signIn.email({
+
+  await useAuth().signIn.email(
+    {
       email: values.email,
       password: values.password,
-    });
-    console.log(logged);
-  } catch (error) {
-    console.error(error);
-  }
+    },
+    {
+      onSuccess() {
+        navigateTo("/profile");
+      },
+      onError({ error }) {
+        toast.error("Something went wrong", {
+          description: error.message,
+        });
+      },
+    }
+  );
+
   loginLoading.value = false;
 });
 
 const signInWithGithub = async () => {
   oAuthLoading.value = true;
-  try {
-    const logged = await useAuth().signIn.social({
+  await useAuth().signIn.social(
+    {
       provider: "github",
-    });
-    console.log(logged);
-  } catch (error) {
-    console.error(error);
-  }
+      callbackURL: "/profile",
+    },
+    {
+      onError({ error }) {
+        toast.error("Something went wrong", {
+          description: error.message,
+        });
+      },
+    }
+  );
   oAuthLoading.value = false;
 };
 </script>
@@ -102,8 +117,21 @@ const signInWithGithub = async () => {
             <FormMessage />
           </FormItem>
         </FormField>
-        <Button type="submit" class="w-full">Login</Button>
-        <Button variant="outline" class="w-full"> Login with GitHub </Button>
+        <Button
+          type="submit"
+          class="w-full"
+          :disabled="loginLoading || oAuthLoading"
+          >Login <Loader2 v-if="loginLoading" class="ml-2 h-4 w-4 animate-spin"
+        /></Button>
+        <Button
+          variant="outline"
+          class="w-full"
+          @click="signInWithGithub"
+          :disabled="oAuthLoading || loginLoading"
+        >
+          Login with GitHub
+          <Loader2 v-if="oAuthLoading" class="ml-2 h-4 w-4 animate-spin"
+        /></Button>
       </form>
       <div class="mt-4 text-center text-sm">
         Don't have an account?

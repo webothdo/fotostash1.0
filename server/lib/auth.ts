@@ -4,7 +4,6 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { useDb } from "../utils/useDb";
 import * as authSchema from "../db/authSchema";
 import { nanoid } from "nanoid";
-import { useSplunk } from "../utils/useSplunk";
 
 export const auth = betterAuth({
   secret: process.env.BETTER_AUTH_SECRET!,
@@ -39,33 +38,7 @@ export const auth = betterAuth({
   },
   emailAndPassword: {
     enabled: true,
-    // sendResetPassword: async ({ user, url }, request) => {
-    //   const response = await useSplunk(
-    //     `support`,
-    //     user.email,
-    //     "Reset your password",
-    //     `Click the link to reset your password: ${url}`
-    //   );
-    //   if (response) {
-    //     console.log("from auth.ts", response);
-    //   }
-    // },
   },
-  //   emailVerification: {
-  //     sendOnSignUp: true,
-  //     autoSignInAfterVerification: true,
-  //     sendVerificationEmail: async ({ user, url }, request) => {
-  //       const response = await useSplunk(
-  //         `joshuaogboloo@gmail.com`,
-  //         user.email,
-  //         "Verify your email",
-  //         `Click the link to verify your email: ${url}`
-  //       );
-  //       if (response) {
-  //         console.log("from auth.ts sent", response);
-  //       }
-  //     },
-  //   },
   socialProviders: {
     github: {
       clientId: process.env.GITHUB_CLIENT_ID!,

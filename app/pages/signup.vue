@@ -11,9 +11,12 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { useAuth } from "~/composables/useAuth";
+import { toast } from "vue-sonner";
 
-const nuxtApp = useNuxtApp();
-const { account, id } = nuxtApp.$appwrite;
+const { signUp, signIn } = useAuth();
+
+const oAuthLoading = ref(false);
+const signUpLoading = ref(false);
 
 const formSchema = toTypedSchema(
   z.object({
@@ -31,17 +34,44 @@ const form = useForm({
 });
 
 const onSubmit = form.handleSubmit(async (values) => {
-  console.log("Submitted", values);
+  signUpLoading.value = true;
   try {
-    const created = await useAuth().signUp.email({
+    await signUp.email({
       email: values.email,
       password: values.password,
+      name: values.email.split("@")[0],
     });
-    console.log(created);
+    toast.success("Account created successfully", {
+      description: "You can now login",
+    });
+    navigateTo("/login");
   } catch (error) {
-    console.error(error);
+    toast.error("Something went wrong", {
+      description: (error as Error).message,
+    });
   }
+
+  signUpLoading.value = false;
 });
+
+const signInWithGithub = async () => {
+  oAuthLoading.value = true;
+  await signIn.social(
+    {
+      provider: "github",
+      callbackURL: "/profile",
+    },
+    {
+      onError({ error }) {
+        toast.error("Something went wrong", {
+          description: error.message,
+        });
+      },
+    }
+  );
+
+  oAuthLoading.value = false;
+};
 </script>
 <template>
   <div class="flex flex-col items-center justify-center h-full">
@@ -82,8 +112,24 @@ const onSubmit = form.handleSubmit(async (values) => {
             <FormMessage />
           </FormItem>
         </FormField>
-        <Button type="submit" class="w-full">Create an account</Button>
-        <Button variant="outline" class="w-full"> Sign up with GitHub </Button>
+        <Button
+          type="submit"
+          class="w-full"
+          :disabled="signUpLoading || oAuthLoading"
+        >
+          Create an account
+          <Loader2 v-if="signUpLoading" class="ml-2 h-4 w-4 animate-spin" />
+        </Button>
+        <Button
+          variant="outline"
+          class="w-full"
+          @click="signInWithGithub"
+          :disabled="oAuthLoading || signUpLoading"
+        >
+          Sign up with GitHub
+          <Loader2 v-if="oAuthLoading" class="ml-2 h-4 w-4 animate-spin" />
+          <Github v-else class="ml-2 h-4 w-4" />
+        </Button>
       </form>
       <div class="mt-4 text-center text-sm">
         Already have an account?
