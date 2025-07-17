@@ -7,7 +7,7 @@ export default defineNuxtConfig({
   future: {
     compatibilityVersion: 4,
   },
-  modules: ["shadcn-nuxt", "@nuxt/image", "@pinia/nuxt"],
+  modules: ["shadcn-nuxt", "@nuxt/image", "@pinia/nuxt", "@nuxtjs/kinde"],
   css: ["@/assets/css/tailwind.css"],
   shadcn: {
     prefix: "",

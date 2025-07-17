@@ -1,10 +1,5 @@
-import { auth } from "~~/server/lib/auth";
-
 export default defineEventHandler(async (event) => {
-  const session = await auth.api.getSession({
-    headers: event.headers,
-  });
-
+  const session = await event.context.kinde.getUser();
   if (!session) {
     throw createError({
       statusCode: 401,
@@ -13,7 +8,7 @@ export default defineEventHandler(async (event) => {
   }
 
   try {
-    const data = await getUser(session.user.id);
+    const data = await getUser(session.id);
     return data;
   } catch (error) {
     console.log(error);

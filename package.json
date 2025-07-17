@@ -20,6 +20,7 @@
     "@better-auth/cli": "^1.2.12",
     "@libsql/client": "^0.5.6",
     "@nuxt/image": "^1.6.0",
+    "@nuxtjs/kinde": "^0.2.0",
     "@pinia/nuxt": "^0.5.1",
     "@radix-icons/vue": "^1.0.0",
     "@tailwindcss/vite": "^4.1.11",

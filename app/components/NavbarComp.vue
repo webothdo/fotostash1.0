@@ -12,8 +12,8 @@ const { user } = useAuth();
       <NuxtLink to="/profile">
         <Avatar>
           <AvatarImage
-            v-if="user?.image"
-            :src="user?.image"
+            v-if="user?.picture"
+            :src="user?.picture"
             alt="user avatar"
           />
           <AvatarFallback>CN</AvatarFallback>
@@ -23,10 +23,10 @@ const { user } = useAuth();
     <div v-else>
       <div class="flex align-middle gap-3">
         <Button as-child>
-          <NuxtLink to="/login">Login</NuxtLink>
+          <NuxtLink to="/api/login" external>Login</NuxtLink>
         </Button>
         <Button as-child variant="outline">
-          <NuxtLink to="/signup">Sign up</NuxtLink>
+          <NuxtLink to="/api/signup" external>Sign up</NuxtLink>
         </Button>
       </div>
     </div>
