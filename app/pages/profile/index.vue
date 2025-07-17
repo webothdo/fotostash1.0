@@ -4,6 +4,9 @@ definePageMeta({
 });
 
 const { user, signOut } = useAuth();
+
+const { data } = await useAsyncData("user", () => $fetch("/api/user"));
+console.log(data.value, user.value?.createdAt);
 </script>
 
 <template>
@@ -17,7 +20,7 @@ const { user, signOut } = useAuth();
         <AvatarFallback>CN</AvatarFallback>
       </Avatar>
 
-      <h2 v-if="user" class="font-[Arimo]">{{ user.name }}</h2>
+      <h2 v-if="user" class="font-[Arimo]">{{ data }}</h2>
       <!-- <p>{{ data }}</p> -->
       <div class="space-x-2 font-[Poppins] font-bold">
         <ClientOnly>

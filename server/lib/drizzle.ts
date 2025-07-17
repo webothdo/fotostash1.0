@@ -12,5 +12,5 @@ const client = createClient({
 });
 
 export const db = drizzle(client, {
-  schema: { ...schema, authSchema, ...relations },
+  schema: { ...schema, ...authSchema, ...relations },
 });

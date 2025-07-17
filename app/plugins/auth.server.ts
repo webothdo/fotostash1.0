@@ -1,3 +1,4 @@
+import { auth } from "~~/server/lib/auth";
 export default defineNuxtPlugin({
   name: "better-auth-fetch-plugin",
   enforce: "pre",
@@ -9,7 +10,13 @@ export default defineNuxtPlugin({
       !nuxtApp.payload.prerenderedAt &&
       !nuxtApp.payload.isCached
     ) {
-      await useAuth().fetchSession();
+      const event = useRequestEvent();
+      if (!event) {
+        return;
+      }
+      await auth.api.getSession({
+        headers: event.headers,
+      });
     }
   },
 });
