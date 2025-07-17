@@ -3,7 +3,7 @@ import process from "node:process";
 
 export default defineConfig({
   dialect: "sqlite",
-  schema: ["./server/db/schema.ts", "./server/db/authSchema.ts"],
+  schema: ["./server/db/schema.ts"],
   out: "./server/db/migrations",
   driver: "turso",
   dbCredentials: {

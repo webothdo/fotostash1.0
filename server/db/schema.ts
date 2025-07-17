@@ -1,23 +1,41 @@
-import { sql } from "drizzle-orm";
 import { text, sqliteTable, integer } from "drizzle-orm/sqlite-core";
-import { user } from "./authSchema";
+import { nanoid } from "nanoid";
 
-export const photo = sqliteTable("photo", {
-  id: text("id").primaryKey(),
+export const users = sqliteTable("users", {
+  id: text("id")
+    .primaryKey()
+    .$default(() => nanoid()),
+  userId: text("user_id").notNull(),
+  name: text("name"),
+  email: text("email"),
+  username: text("username").unique(),
+  displayUsername: text("display_username"),
+  role: text("role").default("user").notNull(),
+  firstName: text("first_name"),
+  lastName: text("last_name"),
+  bio: text("bio"),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .$defaultFn(() => new Date())
+    .notNull(),
+  updatedAt: integer("updated_at", { mode: "timestamp" })
+    .$defaultFn(() => new Date())
+    .notNull(),
+});
+
+export const photos = sqliteTable("photos", {
+  id: text("id")
+    .primaryKey()
+    .$default(() => nanoid()),
   title: text("title"),
   url: text("url").notNull(),
   approved: integer("approved", { mode: "boolean" }).default(false),
   rejected: integer("rejected", { mode: "boolean" }).default(false),
   featured: integer("featured", { mode: "boolean" }).default(false),
   userId: text("user_id")
-    .references(() => user.id, {
+    .references(() => users.id, {
       onDelete: "no action",
     })
     .notNull(),
-  createdAt: text("created_at")
-    .notNull()
-    .$defaultFn(() => sql`CURRENT_TIMESTAMP`),
-  updatedAt: text("updated_at")
-    .notNull()
-    .$defaultFn(() => sql`CURRENT_TIMESTAMP`),
+  createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
+  updatedAt: integer("updated_at", { mode: "timestamp" }).notNull(),
 });
