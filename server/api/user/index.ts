@@ -1,6 +1,6 @@
 import { nanoid } from "nanoid";
 import { createUser } from "~~/server/utils/actions/user/insert";
-import { getUserWithPhotos } from "~~/server/utils/actions/user/query";
+import { getLoggedInUser } from "~~/server/utils/actions/user/query";
 
 export default defineEventHandler(async (event) => {
   try {
@@ -12,7 +12,7 @@ export default defineEventHandler(async (event) => {
       });
     }
 
-    const data = await getUserWithPhotos(session.id);
+    const data = await getLoggedInUser(session.id);
     if (!data) {
       const newUser = createUser({
         userId: session.id,
@@ -20,7 +20,7 @@ export default defineEventHandler(async (event) => {
           ? session.given_name + nanoid(6)
           : session.family_name + nanoid(6),
       });
-      return await getUserWithPhotos(session.id);
+      return await getLoggedInUser(session.id);
     }
     return data;
   } catch (error) {

@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import { fileToBase64 } from "file64";
 
 import {
@@ -9,6 +9,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { toast } from "vue-sonner";
 
 definePageMeta({
   middleware: "auth",
@@ -21,30 +22,44 @@ const name = ref("");
 
 const upload = async () => {
   isLoading.value = true;
-  let image = document.querySelector("#picture")?.files[0];
-  const baseImage = await fileToBase64(image);
-  const userId = useUserStore().user?.$id;
+  let pictureInput = document.querySelector("#picture") as HTMLInputElement;
+  if (!pictureInput) {
+    return;
+  }
 
-  const data = await $fetch("/api/upload", {
-    method: "POST",
-    body: {
-      name: name.value,
-      image: baseImage,
-      userId: userId,
-    },
-  });
+  const image = pictureInput.files?.[0];
+  if (!image) {
+    return;
+  }
+  const baseImage = await fileToBase64(image);
+  //@ts-ignore
+  const userId = useUser().user.value?.id;
+  try {
+    const data = await $fetch("/api/upload", {
+      method: "POST",
+      body: {
+        name: name.value,
+        image: baseImage,
+        userId: userId,
+      },
+    });
+    console.log(data);
+    toast.success("Image uploaded successfully");
+  } catch (error) {
+    toast.warning("An error occured", {
+      description: (error as Error).message,
+    });
+  }
   show.value = false;
   name.value = "";
   isLoading.value = false;
-  console.log(data);
 };
 
-const inputChange = (e) => {
-  if (e?.target?.files?.length > 0) {
-    picture.value = URL.createObjectURL(e.target.files[0]);
-    // document.querySelector('#preview').srcset = URL.createObjectURL(
-    //     e.target.files[0]
-    // )
+const inputChange = (e: Event) => {
+  const target = e.target as HTMLInputElement;
+  if (target.files && target.files.length > 0) {
+    //@ts-ignore
+    picture.value = URL.createObjectURL(target.files[0]);
     show.value = true;
   }
 };
@@ -82,7 +97,9 @@ const inputChange = (e) => {
       </CardContent>
       <CardFooter class="flex justify-end">
         <ClientOnly>
-          <Button @click="upload" :disabled="isLoading">Upload</Button>
+          <Button @click="upload" :disabled="isLoading">{{
+            isLoading ? "Uploading..." : "Upload"
+          }}</Button>
         </ClientOnly>
       </CardFooter>
     </Card>

@@ -17,3 +17,10 @@ export const getUserByUsernameWithPhotos = async (username: string) => {
   });
   return currentUser;
 };
+
+export const getLoggedInUser = async (id: string) => {
+  const currentUser = await useDb().query.users.findFirst({
+    where: (user, { eq }) => eq(user.userId, id),
+  });
+  return currentUser;
+};
