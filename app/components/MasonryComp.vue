@@ -14,6 +14,7 @@ interface Item {
   img: string;
   url: string;
   height: number;
+  width?: number;
 }
 
 interface MasonryProps {
@@ -45,25 +46,30 @@ const useMedia = (
   defaultValue: number
 ) => {
   // Return default value during SSR
-  if (typeof window === 'undefined') {
+  if (typeof window === "undefined") {
     return ref(defaultValue);
   }
 
   const get = () => {
-    if (typeof window.matchMedia !== 'function') return defaultValue;
-    return values[queries.findIndex((q) => window.matchMedia(q).matches)] ?? defaultValue;
+    if (typeof window.matchMedia !== "function") return defaultValue;
+    return (
+      values[queries.findIndex((q) => window.matchMedia(q).matches)] ??
+      defaultValue
+    );
   };
-  
+
   const value = ref<number>(get());
 
   onMounted(() => {
-    if (typeof window.matchMedia !== 'function') return;
-    
+    if (typeof window.matchMedia !== "function") return;
+
     const handler = () => (value.value = get());
-    queries.forEach((q) => window.matchMedia(q).addEventListener("change", handler));
+    queries.forEach((q) =>
+      window.matchMedia(q).addEventListener("change", handler)
+    );
 
     onUnmounted(() => {
-      if (typeof window.matchMedia !== 'function') return;
+      if (typeof window.matchMedia !== "function") return;
       queries.forEach((q) =>
         window.matchMedia(q).removeEventListener("change", handler)
       );
@@ -288,8 +294,8 @@ watchEffect(() => {
       "
     >
       <div
-        class="relative w-full h-full bg-cover bg-center rounded-[10px] shadow-[0px_10px_50px_-10px_rgba(0,0,0,0.2)] uppercase text-[10px] leading-[10px]"
-        :style="{ backgroundImage: `url(${item.img})` }"
+        class="relative w-full h-full bg-cover bg-center rounded-[10px] shadow-[0px_10px_50px_-10px_rgba(0,0,0,0.2)] transition-all duration-300"
+        :style="{ backgroundImage: `url(${item.url})` }"
       >
         <div
           v-if="colorShiftOnHover"
