@@ -24,3 +24,11 @@ export const getLoggedInUser = async (id: string) => {
   });
   return currentUser;
 };
+
+export const getLoggedInUserPhotos = async (id: string) => {
+  const currentUserPhotos = await useDb().query.photos.findMany({
+    where: (photo, { eq }) => eq(photo.userId, id),
+    orderBy: (photo, { desc }) => [desc(photo.createdAt)],
+  });
+  return currentUserPhotos;
+};

@@ -8,6 +8,14 @@ const { user } = useAuth();
 const { data, status, error }: any = await useFetch("/api/user", {
   lazy: true,
 });
+
+const {
+  data: photos,
+  status: photosStatus,
+  error: photosError,
+}: any = await useFetch("/api/user/photos", {
+  lazy: true,
+});
 </script>
 
 <template>
@@ -37,13 +45,10 @@ const { data, status, error }: any = await useFetch("/api/user", {
         </ClientOnly>
       </div>
     </main>
-    <section id="user-images">
-      <!-- <div v-if="curr" v-for="photo in curr">
-                <div>
-                    <NuxtImg height="max" width="200" :src="photo.url" />
-                    <p>{{ photo.title }}</p>
-                </div>
-            </div> -->
+    <section id="user-images" class="w-full mt-10">
+      <MasonryLoadingComp v-if="photosStatus === 'pending'" />
+      <MasonryComp v-if="photosStatus === 'success'" :items="photos" />
+      <p v-if="photosStatus === 'error'">{{ photosError }}</p>
     </section>
   </div>
 </template>
