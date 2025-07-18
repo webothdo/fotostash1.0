@@ -142,7 +142,10 @@ const grid = computed(() => {
   return props.items.map((child) => {
     const col = colHeights.indexOf(Math.min(...colHeights));
     const x = col * (columnWidth + gap);
-    const height = child.height / 2;
+    // Scale the image height to preserve its aspect-ratio based on the computed column width.
+    // If the original width is not provided, fall back to 300 px (the width used in the demo URLs).
+    const originalWidth = child.width ?? 300;
+    const height = (child.height / originalWidth) * columnWidth;
     const y = colHeights[col];
 
     colHeights[col] += height + gap;
