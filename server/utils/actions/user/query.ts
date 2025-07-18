@@ -1,6 +1,6 @@
 export const getUserWithPhotos = async (id: string) => {
   const currentUser = await useDb().query.users.findFirst({
-    where: (user, { eq }) => eq(user.id, id),
+    where: (user, { eq }) => eq(user.userId, id),
     with: {
       photos: true,
     },
