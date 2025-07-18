@@ -8,6 +8,7 @@ export const getAllPhotos = async () => {
         },
       },
     },
+    orderBy: (photo, { desc }) => [desc(photo.createdAt)],
   });
   return photo;
 };

@@ -7,7 +7,6 @@ const {
   lazy: true,
 });
 
-console.log(photos.value);
 const items = ref([
   {
     id: "1",
@@ -34,7 +33,6 @@ const items = ref([
 <template>
   <div>
     <HeaderComp />
-    <p>{{ photos }}</p>
     <MasonryLoadingComp v-if="status === 'pending'" />
     <MasonryComp
       v-if="status === 'success'"
