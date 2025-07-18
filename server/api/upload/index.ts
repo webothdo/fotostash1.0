@@ -24,10 +24,21 @@ export default defineEventHandler(async (event) => {
       message: body.error.message,
     });
   }
+
+  const title =
+    body.data.name
+      .toLowerCase()
+      .replace(/\s+/g, "-") // Replace spaces with -
+      .replace(/[^\w\-]+/g, "") // Remove all non-word chars
+      .replace(/\-\-+/g, "-") // Replace multiple - with single -
+      .replace(/^-+/, "") // Trim - from start of text
+      .replace(/-+$/, "") +
+    "-" +
+    nanoid(8);
   try {
     const uploadedPhoto = await imagekitServer().upload({
       file: body.data.image,
-      fileName: body.data.name,
+      fileName: title,
       folder: "uploads",
     });
 
@@ -36,7 +47,7 @@ export default defineEventHandler(async (event) => {
     const photo = await createPhoto({
       userId: data?.id!,
       url: uploadedPhoto.url,
-      title: body.data.name + nanoid(),
+      title: title,
       height: uploadedPhoto.height,
       width: uploadedPhoto.width,
     });
