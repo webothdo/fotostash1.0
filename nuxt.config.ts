@@ -21,9 +21,5 @@ export default defineNuxtConfig({
     betterAuthUrl: process.env.BETTER_AUTH_URL,
     githubClientId: process.env.GITHUB_CLIENT_ID,
     githubClientSecret: process.env.GITHUB_CLIENT_SECRET,
-    public: {
-      appwriteEndpoint: process.env.APPWRITE_ENDPOINT,
-      appwriteProjectId: process.env.APPWRITE_PROJECT_ID,
-    },
   },
 });
