@@ -5,7 +5,7 @@ definePageMeta({
 
 const { user } = useAuth();
 
-const { data, status, error } = await useFetch("/api/user", {
+const { data, status, error }: any = await useFetch("/api/user", {
   lazy: true,
 });
 </script>
@@ -18,7 +18,10 @@ const { data, status, error } = await useFetch("/api/user", {
         <AvatarFallback>CN</AvatarFallback>
       </Avatar>
 
-      <h2 v-if="status === 'success'" class="font-[Arimo]">{{ data }}</h2>
+      <h2 v-if="status === 'success'" class="font-[Arimo]">
+        {{ data?.username }}
+      </h2>
+      <h2 v-if="status === 'pending'">loading....</h2>
       <!-- <p>{{ data }}</p> -->
       <div class="space-x-2 font-[Poppins] font-bold">
         <ClientOnly>
