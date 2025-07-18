@@ -1,13 +1,14 @@
 import { eq } from "drizzle-orm";
-import { user } from "~~/server/db/authSchema";
+import { users } from "~~/server/db/schema";
 
 export const updateUser = async (
   id: string,
-  data: typeof user.$inferInsert
+  data: Omit<typeof users.$inferInsert, "userId">
 ) => {
   const updatedUser = await useDb()
-    .update(user)
+    .update(users)
     .set(data)
-    .where(eq(user.id, id));
+    .where(eq(users.id, id))
+    .returning();
   return updatedUser;
 };
