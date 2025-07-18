@@ -28,6 +28,8 @@ export default defineEventHandler(async (event) => {
       userId: body.data.userId,
       url: uploadedPhoto.url,
       title: body.data.name + nanoid(),
+      height: uploadedPhoto.height,
+      width: uploadedPhoto.width,
     });
     return photo;
   } catch (error) {

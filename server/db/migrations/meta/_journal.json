@@ -15,6 +15,20 @@
       "when": 1752839337369,
       "tag": "0001_workable_venom",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1752840492056,
+      "tag": "0002_lucky_master_mold",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1752840547712,
+      "tag": "0003_certain_rick_jones",
+      "breakpoints": true
     }
   ]
 }

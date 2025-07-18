@@ -29,6 +29,8 @@ export const photos = sqliteTable("photos", {
   title: text("title"),
   url: text("url").notNull(),
   tags: text("tags", { mode: "json" }),
+  height: integer("height").default(600).notNull(),
+  width: integer("width"),
   approved: integer("approved", { mode: "boolean" }).default(false),
   rejected: integer("rejected", { mode: "boolean" }).default(false),
   featured: integer("featured", { mode: "boolean" }).default(false),
