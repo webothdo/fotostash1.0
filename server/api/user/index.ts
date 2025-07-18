@@ -15,7 +15,7 @@ export default defineEventHandler(async (event) => {
     const data = await getLoggedInUser(session.id);
     if (!data) {
       const newUser = createUser({
-        userId: session.id,
+        kindeId: session.id,
         username: session.given_name
           ? session.given_name + nanoid(6)
           : session.family_name + nanoid(6),

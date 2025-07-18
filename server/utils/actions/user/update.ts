@@ -3,7 +3,7 @@ import { users } from "~~/server/db/schema";
 
 export const updateUser = async (
   id: string,
-  data: Omit<typeof users.$inferInsert, "userId">
+  data: Omit<typeof users.$inferInsert, "kindeId">
 ) => {
   const updatedUser = await useDb()
     .update(users)

@@ -1,6 +1,6 @@
 export const getUserWithPhotos = async (id: string) => {
   const currentUser = await useDb().query.users.findFirst({
-    where: (user, { eq }) => eq(user.userId, id),
+    where: (user, { eq }) => eq(user.kindeId, id),
     with: {
       photos: true,
     },
@@ -20,7 +20,7 @@ export const getUserByUsernameWithPhotos = async (username: string) => {
 
 export const getLoggedInUser = async (id: string) => {
   const currentUser = await useDb().query.users.findFirst({
-    where: (user, { eq }) => eq(user.userId, id),
+    where: (user, { eq }) => eq(user.kindeId, id),
   });
   return currentUser;
 };

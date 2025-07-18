@@ -40,10 +40,8 @@ const upload = async () => {
       body: {
         name: name.value,
         image: baseImage,
-        userId: userId,
       },
     });
-    console.log(data);
     toast.success("Image uploaded successfully");
   } catch (error) {
     toast.warning("An error occured", {

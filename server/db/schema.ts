@@ -5,7 +5,7 @@ export const users = sqliteTable("users", {
   id: text("id")
     .primaryKey()
     .$default(() => nanoid()),
-  userId: text("user_id").notNull(),
+  kindeId: text("kinde_id").notNull(),
   name: text("name"),
   email: text("email"),
   username: text("username").unique(),

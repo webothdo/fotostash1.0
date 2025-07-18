@@ -5,11 +5,18 @@ import { z } from "zod";
 const uploadSchema = z.object({
   name: z.string(),
   image: z.string(),
-  userId: z.string(),
 });
 
 export default defineEventHandler(async (event) => {
   const body = await readValidatedBody(event, uploadSchema.safeParse);
+  const session = await event.context.kinde.getUserProfile();
+  if (!session) {
+    throw createError({
+      statusCode: 401,
+      statusMessage: "Unauthorized",
+    });
+  }
+
   if (!body.success) {
     throw createError({
       statusCode: 400,
@@ -24,8 +31,10 @@ export default defineEventHandler(async (event) => {
       folder: "uploads",
     });
 
+    const data = await getLoggedInUser(session.id);
+
     const photo = await createPhoto({
-      userId: body.data.userId,
+      userId: data?.id!,
       url: uploadedPhoto.url,
       title: body.data.name + nanoid(),
       height: uploadedPhoto.height,
