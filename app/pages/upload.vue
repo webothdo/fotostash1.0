@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/card";
 
 definePageMeta({
-  middleware: "auth-logged-in",
+  middleware: "auth",
 });
 
 const show = ref(false);

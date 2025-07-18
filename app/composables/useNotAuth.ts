@@ -4,7 +4,7 @@ import { createAuthClient } from "better-auth/vue";
 import type { User } from "better-auth";
 import { adminClient, usernameClient } from "better-auth/client/plugins";
 
-export function useAuth() {
+export function useNotAuth() {
   const url = useRequestURL();
   const headers = import.meta.server ? useRequestHeaders() : undefined;
 

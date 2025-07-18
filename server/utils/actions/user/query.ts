@@ -1,13 +1,19 @@
-export const getUser = async (id: string) => {
-  const currentUser = await useDb().query.user.findFirst({
+export const getUserWithPhotos = async (id: string) => {
+  const currentUser = await useDb().query.users.findFirst({
     where: (user, { eq }) => eq(user.id, id),
+    with: {
+      photos: true,
+    },
   });
   return currentUser;
 };
 
-export const getUserByUsername = async (username: string) => {
-  const currentUser = await useDb().query.user.findFirst({
+export const getUserByUsernameWithPhotos = async (username: string) => {
+  const currentUser = await useDb().query.users.findFirst({
     where: (user, { eq }) => eq(user.username, username),
+    with: {
+      photos: true,
+    },
   });
   return currentUser;
 };

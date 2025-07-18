@@ -1,20 +1,22 @@
-export default defineEventHandler(async (event) => {
-  const session = await event.context.kinde.getUser();
-  if (!session) {
-    throw createError({
-      statusCode: 401,
-      statusMessage: "Unauthorized",
-    });
-  }
+import { getUserWithPhotos } from "~~/server/utils/actions/user/query";
 
+export default defineEventHandler(async (event) => {
   try {
-    const data = await getUser(session.id);
+    const session = await event.context.kinde.getUserProfile();
+    if (!session) {
+      throw createError({
+        statusCode: 401,
+        statusMessage: "Unauthorized",
+      });
+    }
+
+    const data = await getUserWithPhotos(session.id);
     return data;
   } catch (error) {
-    console.log(error);
     throw createError({
       statusCode: 500,
       statusMessage: "Internal Server Error",
+      message: (error as Error).message,
     });
   }
 });

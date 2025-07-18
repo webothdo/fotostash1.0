@@ -3,20 +3,18 @@ definePageMeta({
   middleware: "auth",
 });
 
-const { user, signOut } = useAuth();
+const { user } = useAuth();
 
-const { data } = await useAsyncData("user", () => $fetch("/api/user"));
-console.log(data.value, user.value?.createdAt);
+const { data } = await useFetch("/api/user", {
+  lazy: true,
+});
 </script>
 
 <template>
   <div>
     <main class="w-full flex flex-col items-center gap-2 mt-10">
       <Avatar class="h-[150px] w-[150px]">
-        <AvatarImage
-          src="https://images.pexels.com/photos/7244112/pexels-photo-7244112.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1"
-          alt="@radix-vue"
-        />
+        <AvatarImage :src="user?.picture || ''" alt="@radix-vue" />
         <AvatarFallback>CN</AvatarFallback>
       </Avatar>
 
@@ -30,9 +28,9 @@ console.log(data.value, user.value?.createdAt);
           <Button as-child>
             <NuxtLink to="/upload">Upload</NuxtLink>
           </Button>
-          <Button variant="secondary" @click="signOut({ redirectTo: '/login' })"
-            >Logout</Button
-          >
+          <Button variant="secondary">
+            <NuxtLink to="/api/logout" external>Logout</NuxtLink>
+          </Button>
         </ClientOnly>
       </div>
     </main>

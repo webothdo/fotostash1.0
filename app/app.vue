@@ -6,6 +6,8 @@ import "vue-sonner/style.css";
 <template>
   <div class="w-dvw h-dvh px-1">
     <NavbarComp />
+    <NuxtLoadingIndicator />
+    <NuxtRouteAnnouncer />
     <NuxtPage />
     <Toaster />
   </div>

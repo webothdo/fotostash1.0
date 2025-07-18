@@ -1,6 +1,5 @@
 <script setup lang="ts">
 definePageMeta({
-  middleware: "auth-logged-in",
   path: "/:user([@][\\w+\\-+]+)",
   // path: '/:user([@]\\w+)',
 });
@@ -11,13 +10,6 @@ const profile = ref(null);
 const username = useRoute().params.user;
 
 const { data } = await useFetch(`/api/profile/${username}`);
-
-const { data: photos } = await useFetch("/api/profile/photos", {
-  method: "GET",
-  query: {
-    profileId: data?.value?.id,
-  },
-});
 </script>
 
 <template>
@@ -32,12 +24,12 @@ const { data: photos } = await useFetch("/api/profile/photos", {
       </Avatar>
       <h2 v-if="data" class="font-[Arimo]">{{ data?.username }}</h2>
     </main>
-    <section id="user-images">
+    <!-- <section id="user-images">
       <p v-if="!photos">This user does not have any photos</p>
       <div v-else v-for="photo in photos">
         <NuxtImg height="max" width="200" :src="photo.url" />
         <p>{{ photo.title }}</p>
       </div>
-    </section>
+    </section> -->
   </div>
 </template>

@@ -26,7 +26,7 @@ const { user } = useAuth();
           <NuxtLink to="/api/login" external>Login</NuxtLink>
         </Button>
         <Button as-child variant="outline">
-          <NuxtLink to="/api/signup" external>Sign up</NuxtLink>
+          <NuxtLink to="/api/register" external>Sign up</NuxtLink>
         </Button>
       </div>
     </div>

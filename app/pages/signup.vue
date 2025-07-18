@@ -10,7 +10,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { useAuth } from "~/composables/useAuth";
+import { useAuth } from "~/composables/useNotAuth";
 import { toast } from "vue-sonner";
 
 const { signUp, signIn } = useAuth();
