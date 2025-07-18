@@ -10,6 +10,7 @@ import {
 import { gsap } from "gsap";
 
 interface Item {
+  title: string;
   id: string;
   img: string;
   url: string;
@@ -154,7 +155,8 @@ const grid = computed(() => {
 });
 
 const openUrl = (url: string) => {
-  window.open(url, "_blank", "noopener");
+  // window.open(url, "_blank", "noopener");
+  navigateTo(`/photo/${url}`);
 };
 
 interface GridItem extends Item {
@@ -288,7 +290,7 @@ watchEffect(() => {
       :data-key="item.id"
       class="absolute box-content"
       :style="{ willChange: 'transform, width, height, opacity' }"
-      @click="openUrl(item.url)"
+      @click="openUrl(item.title)"
       @mouseenter="
         (e) => handleMouseEnter(item.id, e.currentTarget as HTMLElement)
       "
@@ -297,7 +299,7 @@ watchEffect(() => {
       "
     >
       <div
-        class="relative w-full h-full bg-cover bg-center rounded-[10px] shadow-[0px_10px_50px_-10px_rgba(0,0,0,0.2)] transition-all duration-300"
+        class="relative w-full h-full bg-cover bg-center cursor-pointer rounded-[10px] shadow-[0px_10px_50px_-10px_rgba(0,0,0,0.2)] transition-all duration-300"
         :style="{ backgroundImage: `url(${item.url})` }"
       >
         <div
