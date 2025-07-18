@@ -28,6 +28,9 @@ export const photos = sqliteTable("photos", {
     .primaryKey()
     .$default(() => nanoid()),
   title: text("title"),
+  slug: text("slug")
+    .unique()
+    .$defaultFn(() => nanoid()),
   url: text("url").notNull(),
   tags: text("tags", { mode: "json" }),
   height: integer("height").default(600).notNull(),

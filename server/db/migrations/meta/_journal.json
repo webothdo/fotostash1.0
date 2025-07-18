@@ -43,6 +43,20 @@
       "when": 1752855094704,
       "tag": "0005_certain_justice",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1752868319937,
+      "tag": "0006_nosy_whirlwind",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "6",
+      "when": 1752868393163,
+      "tag": "0007_busy_millenium_guard",
+      "breakpoints": true
     }
   ]
 }

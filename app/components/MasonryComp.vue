@@ -10,7 +10,7 @@ import {
 import { gsap } from "gsap";
 
 interface Item {
-  title: string;
+  slug: string;
   id: string;
   img: string;
   url: string;
@@ -290,7 +290,7 @@ watchEffect(() => {
       :data-key="item.id"
       class="absolute box-content"
       :style="{ willChange: 'transform, width, height, opacity' }"
-      @click="openUrl(item.title)"
+      @click="openUrl(item.slug)"
       @mouseenter="
         (e) => handleMouseEnter(item.id, e.currentTarget as HTMLElement)
       "

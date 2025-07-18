@@ -25,7 +25,7 @@ export default defineEventHandler(async (event) => {
     });
   }
 
-  const title =
+  const slug =
     body.data.name
       .toLowerCase()
       .replace(/\s+/g, "-") // Replace spaces with -
@@ -38,7 +38,7 @@ export default defineEventHandler(async (event) => {
   try {
     const uploadedPhoto = await imagekitServer().upload({
       file: body.data.image,
-      fileName: title,
+      fileName: body.data.name,
       folder: "uploads",
     });
 
@@ -47,7 +47,8 @@ export default defineEventHandler(async (event) => {
     const photo = await createPhoto({
       userId: data?.id!,
       url: uploadedPhoto.url,
-      title: title,
+      title: body.data.name,
+      slug: slug,
       height: uploadedPhoto.height,
       width: uploadedPhoto.width,
     });
