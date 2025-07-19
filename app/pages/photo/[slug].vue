@@ -69,9 +69,19 @@ async function downloadImage() {
           <p class="text-muted-foreground mb-4" v-if="photo.description">
             {{ photo.description }}
           </p>
-          <div class="flex items-center gap-3 mb-4">
-            <Avatar v-if="photo.user?.picture">
-              <img :src="photo.user.picture" alt="Author" />
+          <NuxtLink
+            :to="`/@${photo.user?.username}`"
+            class="flex items-center gap-3 mb-4 w-fit"
+          >
+            <Avatar>
+              <span class="sr-only">{{ photo.user?.username }}</span>
+              <span class="sr-only">View profile</span>
+              <AvatarImage
+                v-if="photo.user?.picture"
+                :src="photo.user.picture"
+                alt="@radix-vue"
+              />
+              <AvatarFallback>CN</AvatarFallback>
             </Avatar>
             <div>
               <div class="font-medium">
@@ -83,7 +93,7 @@ async function downloadImage() {
                 @{{ photo.user?.username }}
               </div>
             </div>
-          </div>
+          </NuxtLink>
           <div
             v-if="photo.tags && photo.tags.length"
             class="flex flex-wrap gap-2 mb-4"
