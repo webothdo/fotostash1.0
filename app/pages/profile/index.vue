@@ -22,7 +22,11 @@ const {
   <div>
     <main class="w-full flex flex-col items-center gap-2 mt-10">
       <Avatar class="h-[150px] w-[150px]">
-        <AvatarImage :src="user?.picture || ''" alt="@radix-vue" />
+        <AvatarImage
+          v-if="useUser().user.value?.picture"
+          :src="useUser().user.value?.picture || ''"
+          alt="@radix-vue"
+        />
         <AvatarFallback>CN</AvatarFallback>
       </Avatar>
 

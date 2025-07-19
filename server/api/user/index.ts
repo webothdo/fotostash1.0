@@ -19,6 +19,9 @@ export default defineEventHandler(async (event) => {
         username: session.given_name
           ? session.given_name + nanoid(6)
           : session.family_name + nanoid(6),
+        picture:
+          session.picture ||
+          "https://api.dicebear.com/9.x/glass/svg?seed=Eliza",
       });
       return await getLoggedInUser(session.id);
     }
