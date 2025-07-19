@@ -11,7 +11,7 @@ const { data, status, error } = await useFetch(`/api/profile/${username}`);
 
 <template>
   <div>
-    <main class="w-full flex flex-col items-center gap-2 mt-10">
+    <main class="w-full flex flex-col items-center gap-2 mt-10 mb-10">
       <Avatar class="h-[150px] w-[150px]">
         <AvatarImage
           v-if="data?.picture"

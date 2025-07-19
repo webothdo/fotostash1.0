@@ -31,7 +31,7 @@ const items = ref([
 </script>
 
 <template>
-  <div>
+  <div class="mb-10">
     <HeaderComp />
     <MasonryLoadingComp v-if="status === 'pending'" />
     <MasonryComp
