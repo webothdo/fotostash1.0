@@ -13,17 +13,20 @@ export default defineEventHandler(async (event) => {
     }
 
     const data = await getLoggedInUser(session.id);
+
     if (!data) {
+      const username = session.given_name
+        ? session.given_name + nanoid(6)
+        : session.family_name + nanoid(6);
       const newUser = createUser({
         kindeId: session.id,
-        username: session.given_name
-          ? session.given_name + nanoid(6)
-          : session.family_name + nanoid(6),
+        username: username,
         picture:
           session.picture ||
           "https://api.dicebear.com/9.x/glass/svg?seed=Eliza",
       });
-      return await getLoggedInUser(session.id);
+      const added = await addUsername(username);
+      await sendRedirect(event, "/profile/settings");
     }
     return data;
   } catch (error) {

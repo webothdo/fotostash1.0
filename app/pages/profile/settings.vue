@@ -10,12 +10,18 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { toast } from "vue-sonner";
+import { Loader2, CheckCircle2, XCircle } from "lucide-vue-next";
+import { ref, computed, watch } from "vue";
+import { useDebounce } from "@/composables/useDebounce";
 
 definePageMeta({
   middleware: "auth",
 });
 
 const loginLoading = ref(false);
+const usernameAvailable = ref<boolean | null>(null); // null = untouched, true = available, false = taken
+const usernamePending = ref(false);
+const MIN_USERNAME_LENGTH = 5;
 
 const formSchema = toTypedSchema(
   z.object({
@@ -29,9 +35,46 @@ const form = useForm({
   validationSchema: formSchema,
 });
 
+const username = computed(() => form.values.username);
+const { debouncedValue: debouncedUsername, pending: debouncePending } =
+  useDebounce(username, 700);
+
+watch(debouncedUsername, async (val) => {
+  usernameAvailable.value = null;
+  if (!val || val.length < MIN_USERNAME_LENGTH) {
+    usernameAvailable.value = null;
+    usernamePending.value = false;
+    return;
+  }
+  usernamePending.value = true;
+  try {
+    const { data, pending, error } = await useFetch(
+      `/api/username/check?username=${encodeURIComponent(val)}`
+    );
+    usernameAvailable.value =
+      // @ts-ignore
+      data.value && typeof data.value.isAvailable === "boolean"
+        ? // @ts-ignore
+          data.value.isAvailable
+        : null;
+  } catch (e) {
+    usernameAvailable.value = null;
+  } finally {
+    usernamePending.value = false;
+  }
+});
+
+const canSubmit = computed(() => {
+  return (
+    !loginLoading.value &&
+    username.value &&
+    username.value.length >= MIN_USERNAME_LENGTH &&
+    usernameAvailable.value === true
+  );
+});
+
 const onSubmit = form.handleSubmit(async (values) => {
   loginLoading.value = true;
-
   try {
     const { data, status } = await useFetch("/api/user/update/username", {
       method: "POST",
@@ -48,7 +91,6 @@ const onSubmit = form.handleSubmit(async (values) => {
       description: (error as Error).message,
     });
   }
-
   loginLoading.value = false;
 });
 
@@ -72,14 +114,38 @@ onMounted(() => {
         <FormItem class="space-y-2">
           <FormLabel class="font-semibold">Username</FormLabel>
           <FormControl>
-            <Input type="text" placeholder="johndoe" v-bind="componentField" />
+            <div class="relative flex items-center">
+              <Input
+                type="text"
+                placeholder="johndoe"
+                v-bind="componentField"
+              />
+              <span class="absolute right-2">
+                <Loader2
+                  v-if="usernamePending || debouncePending"
+                  class="h-4 w-4 animate-spin text-muted-foreground"
+                />
+                <CheckCircle2
+                  v-else-if="usernameAvailable === true"
+                  class="h-4 w-4 text-green-500"
+                />
+                <XCircle
+                  v-else-if="usernameAvailable === false"
+                  class="h-4 w-4 text-red-500"
+                />
+              </span>
+            </div>
           </FormControl>
-          <FormMessage />
+          <FormMessage v-if="usernameAvailable === false">
+            Username is not available
+          </FormMessage>
+          <FormMessage v-else />
         </FormItem>
       </FormField>
-      <Button type="submit" class="w-full" :disabled="loginLoading"
-        >Update <Loader2 v-if="loginLoading" class="ml-2 h-4 w-4 animate-spin"
-      /></Button>
+      <Button type="submit" class="w-full" :disabled="!canSubmit"
+        >Update
+        <Loader2 v-if="loginLoading" class="ml-2 h-4 w-4 animate-spin" />
+      </Button>
     </form>
   </div>
 </template>

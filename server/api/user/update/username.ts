@@ -9,6 +9,7 @@ const usernameSchema = z.object({
 });
 
 export default defineEventHandler(async (event) => {
+  const body = await readValidatedBody(event, usernameSchema.safeParse);
   try {
     const session = await event.context.kinde.getUserProfile();
     if (!session) {
@@ -18,7 +19,6 @@ export default defineEventHandler(async (event) => {
       });
     }
 
-    const body = await readValidatedBody(event, usernameSchema.safeParse);
     if (!body.success) {
       throw createError({
         statusCode: 400,
@@ -26,10 +26,20 @@ export default defineEventHandler(async (event) => {
         message: body.error.message,
       });
     }
+    const isAvailable = await isUsernameAvailable(body.data.username);
+    if (!isAvailable) {
+      throw createError({
+        statusCode: 400,
+        statusMessage: "Username is not available",
+      });
+    }
+
     const loggedInUser = await getLoggedInUser(session.id);
+    const removeOldUsername = await removeUsername(loggedInUser?.username!);
     const photos = await updateUser(loggedInUser?.id!, {
       username: body.data.username,
     });
+    const added = await addUsername(body.data.username);
     return photos;
   } catch (error) {
     throw createError({
