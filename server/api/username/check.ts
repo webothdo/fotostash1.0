@@ -2,6 +2,14 @@ import { isUsernameAvailable } from "~~/server/utils/actions/username";
 
 export default defineEventHandler(async (event) => {
   const username = getQuery(event).username as string;
+  const session = await event.context.kinde.getUserProfile();
+  if (!session) {
+    throw createError({
+      statusCode: 401,
+      statusMessage: "Unauthorized",
+    });
+  }
+
   if (!username) {
     throw createError({
       statusCode: 400,
@@ -9,7 +17,6 @@ export default defineEventHandler(async (event) => {
     });
   }
 
-  console.log(username);
   try {
     const isAvailable = await isUsernameAvailable(username);
     return { isAvailable };
