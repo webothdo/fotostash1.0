@@ -74,6 +74,7 @@ const canSubmit = computed(() => {
 });
 
 const onSubmit = form.handleSubmit(async (values) => {
+  if (!canSubmit) return;
   loginLoading.value = true;
   try {
     const { data, status } = await useFetch("/api/user/update/username", {
@@ -83,6 +84,7 @@ const onSubmit = form.handleSubmit(async (values) => {
         username: values.username,
       },
     });
+    reloadNuxtApp();
     if (status.value === "success") {
       toast.success("Username updated successfully");
     }
