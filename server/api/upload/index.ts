@@ -4,7 +4,7 @@ import { z } from "zod";
 
 const uploadSchema = z.object({
   name: z.string(),
-  image: z.string(),
+  image: z.any(),
 });
 
 export default defineEventHandler(async (event) => {
@@ -22,6 +22,13 @@ export default defineEventHandler(async (event) => {
       statusCode: 400,
       statusMessage: "Bad Request",
       message: body.error.message,
+    });
+  }
+
+  if (!body.data?.image) {
+    throw createError({
+      statusCode: 400,
+      statusMessage: "No file provided",
     });
   }
 

@@ -10,6 +10,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { toast } from "vue-sonner";
+import { useBase64 } from "@vueuse/core";
 
 definePageMeta({
   middleware: "auth",
@@ -31,7 +32,7 @@ const upload = async () => {
   if (!image) {
     return;
   }
-  const baseImage = await fileToBase64(image);
+  const baseImage = useBase64(image);
   //@ts-ignore
   const userId = useUser().user.value?.id;
   try {
