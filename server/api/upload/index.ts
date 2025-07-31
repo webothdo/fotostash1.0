@@ -7,33 +7,86 @@ const uploadSchema = z.object({
   image: z.any(),
 });
 
+// Supported image MIME types
+const SUPPORTED_MIME_TYPES = [
+  "image/jpeg",
+  "image/png",
+  "image/gif",
+  "image/webp",
+  "image/svg+xml",
+];
+
+// MIME type to extension mapping
+const MIME_TO_EXTENSION: Record<string, string> = {
+  "image/jpeg": "jpg",
+  "image/png": "png",
+  "image/gif": "gif",
+  "image/webp": "webp",
+  "image/svg+xml": "svg",
+};
+
+// Maximum file size (10MB)
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB in bytes
+
 export default defineEventHandler(async (event) => {
-  const body = await readValidatedBody(event, uploadSchema.safeParse);
+  const formData = await readMultipartFormData(event);
   const session = await event.context.kinde.getUserProfile();
   if (!session) {
     throw createError({
       statusCode: 401,
       statusMessage: "Unauthorized",
+      message: "Please login to upload a photo",
     });
   }
 
-  if (!body.success) {
+  if (!formData || formData.length === 0) {
     throw createError({
       statusCode: 400,
-      statusMessage: "Bad Request",
-      message: body.error.message,
+      statusMessage: "No form data provided",
+      message: "Please provide a valid form data",
     });
   }
 
-  if (!body.data?.image) {
+  // Find the image file in the form data
+  const fileEntry = formData.find(
+    (entry) =>
+      entry &&
+      entry.type &&
+      SUPPORTED_MIME_TYPES.includes(entry.type) &&
+      entry.data
+  );
+
+  const nameEntry = formData
+    .find((entry) => entry.name === "name")
+    ?.data.toString();
+
+  if (!nameEntry) {
     throw createError({
       statusCode: 400,
-      statusMessage: "No file provided",
+      statusMessage: "No name provided",
+      message: "Please provide a valid name",
+    });
+  }
+
+  if (!fileEntry) {
+    throw createError({
+      statusCode: 400,
+      statusMessage: "No valid image file found",
+      message: "Supported formats: JPEG, PNG, GIF, WebP, and SVG",
+    });
+  }
+
+  // Check file size
+  if (fileEntry.data.length > MAX_FILE_SIZE) {
+    throw createError({
+      statusCode: 400,
+      statusMessage: "File too large",
+      message: `Maximum file size is ${MAX_FILE_SIZE / (1024 * 1024)}MB`,
     });
   }
 
   const slug =
-    body.data.name
+    nameEntry
       .toLowerCase()
       .replace(/\s+/g, "-") // Replace spaces with -
       .replace(/[^\w\-]+/g, "") // Remove all non-word chars
@@ -44,8 +97,8 @@ export default defineEventHandler(async (event) => {
     nanoid(8);
   try {
     const uploadedPhoto = await imagekitServer().upload({
-      file: body.data.image,
-      fileName: body.data.name,
+      file: fileEntry.data,
+      fileName: nameEntry,
       folder: "uploads",
     });
 
@@ -54,7 +107,7 @@ export default defineEventHandler(async (event) => {
     const photo = await createPhoto({
       userId: data?.id!,
       url: uploadedPhoto.url,
-      title: body.data.name,
+      title: nameEntry,
       slug: slug,
       height: uploadedPhoto.height,
       width: uploadedPhoto.width,

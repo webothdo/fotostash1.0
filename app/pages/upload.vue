@@ -1,16 +1,12 @@
 <script setup lang="ts">
-import { fileToBase64 } from "file64";
-
 import {
   Card,
   CardContent,
-  CardDescription,
   CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
 import { toast } from "vue-sonner";
-import { useBase64 } from "@vueuse/core";
 
 definePageMeta({
   middleware: "auth",
@@ -32,16 +28,16 @@ const upload = async () => {
   if (!image) {
     return;
   }
-  const baseImage = useBase64(image);
+
+  const formData = new FormData();
+  formData.append("name", name.value);
+  formData.append("image", image);
   //@ts-ignore
   const userId = useUser().user.value?.id;
   try {
     const data = await $fetch("/api/upload", {
       method: "POST",
-      body: {
-        name: name.value,
-        image: baseImage,
-      },
+      body: formData,
     });
     toast.success("Image uploaded successfully");
   } catch (error) {
