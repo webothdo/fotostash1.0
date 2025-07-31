@@ -2,6 +2,10 @@
 import { Button } from "@/components/ui/button";
 import { toast } from "vue-sonner";
 
+definePageMeta({
+  middleware: ["admin"],
+});
+
 interface Photo {
   id: string;
   title?: string;
@@ -27,7 +31,9 @@ const {
   status,
   error,
   refresh,
-} = await useFetch<Photo[]>("/api/photo/get-all");
+} = await useFetch<Photo[]>("/api/photo/get-all", {
+  lazy: true,
+});
 
 const handleApprove = async (photoId: string) => {
   try {

@@ -8,7 +8,6 @@ export const useUser = () => {
       });
       // @ts-ignore
       user.value = data.value;
-      console.log("user", user.value);
     } catch (error) {
       console.log(error);
       user.value = null;
