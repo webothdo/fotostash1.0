@@ -1,4 +1,5 @@
 import imagekitServer from "~~/server/utils/imagekit";
+import { getImageDimensions } from "~~/server/utils/imageDimensions";
 import { nanoid } from "nanoid";
 import { z } from "zod";
 
@@ -96,11 +97,25 @@ export default defineEventHandler(async (event) => {
     "-" +
     nanoid(8);
   try {
+    const fileBuffer = Buffer.from(fileEntry.data);
+    const localDimensions = await getImageDimensions(fileBuffer);
+
     const uploadedPhoto = await imagekitServer().upload({
-      file: fileEntry.data,
+      file: fileBuffer,
       fileName: nameEntry,
       folder: "uploads",
     });
+
+    const width = localDimensions?.width ?? uploadedPhoto.width;
+    const height = localDimensions?.height ?? uploadedPhoto.height;
+
+    if (!width || !height) {
+      throw createError({
+        statusCode: 422,
+        statusMessage: "Unprocessable Image",
+        message: "Could not determine the image dimensions",
+      });
+    }
 
     const data = await getLoggedInUser(session.id);
 
@@ -109,8 +124,8 @@ export default defineEventHandler(async (event) => {
       url: uploadedPhoto.url,
       title: nameEntry,
       slug: slug,
-      height: uploadedPhoto.height,
-      width: uploadedPhoto.width,
+      height: height,
+      width: width,
     });
     return photo;
   } catch (error) {

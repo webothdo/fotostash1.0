@@ -15,6 +15,7 @@
     "db:studio": "bunx drizzle-kit studio",
     "db:drop": "bunx drizzle-kit drop",
     "db:up": "bunx drizzle-kit up",
+    "db:backfill-dimensions": "bun server/scripts/backfill-photo-dimensions.ts",
     "auth:generate": "bunx @better-auth/cli generate --config server/lib/auth.ts --output server/db/authSchema.ts -y"
   },
   "dependencies": {
@@ -44,6 +45,7 @@
     "radix-vue": "^1.9.17",
     "reka-ui": "^2.11.0",
     "shadcn-nuxt": "^2.8.2",
+    "sharp": "^0.35.5",
     "tailwind-merge": "^3.7.0",
     "tailwindcss": "^4.3.3",
     "tailwindcss-animate": "^1.0.7",
