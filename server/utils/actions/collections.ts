@@ -62,7 +62,6 @@ export const listOwnCollections = async (userId: string, photoId?: string) => {
               },
             },
             orderBy: (link, { desc }) => [desc(link.addedAt)],
-            limit: 4,
           },
     },
     orderBy: (collection, { desc }) => [desc(collection.updatedAt)],
@@ -74,9 +73,11 @@ export const listOwnCollections = async (userId: string, photoId?: string) => {
     contains: photoId ? collection.photos.length > 0 : undefined,
     previewPhotos: photoId
       ? []
-      : collection.photos.flatMap((link) =>
-          "photo" in link && link.photo ? [link.photo] : []
-        ),
+      : collection.photos
+          .flatMap((link) =>
+            "photo" in link && link.photo ? [link.photo] : []
+          )
+          .slice(0, 4),
   }));
 };
 
