@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, gt, lt, or, sql } from "drizzle-orm";
+import { and, asc, desc, eq, gt, inArray, lt, or, sql } from "drizzle-orm";
 import { photos } from "~~/server/db/schema";
 import { normalizeTag } from "~~/server/utils/tags";
 
@@ -12,6 +12,7 @@ export interface PhotoPageOptions {
   tag?: string;
   orientation?: PhotoOrientation;
   sort?: PhotoSort;
+  userIds?: string[];
 }
 
 const encodeCursor = (photo: { createdAt: Date | null; id: string }) => {
@@ -64,7 +65,12 @@ export const getApprovedPhotoPage = async ({
   tag,
   orientation,
   sort = "latest",
+  userIds,
 }: PhotoPageOptions = {}) => {
+  if (userIds && userIds.length === 0) {
+    return { items: [], nextCursor: null };
+  }
+
   const decodedCursor = cursor ? decodeCursor(cursor) : null;
   const ascending = sort === "oldest";
   const term = normalizeSearchTerm(q);
@@ -85,6 +91,10 @@ export const getApprovedPhotoPage = async ({
 
   if (normalizedTag) {
     conditions.push(sql`lower(${photos.tags}) like ${`%"${normalizedTag}"%`}`);
+  }
+
+  if (userIds?.length) {
+    conditions.push(inArray(photos.userId, userIds));
   }
 
   if (orientation === "landscape") {

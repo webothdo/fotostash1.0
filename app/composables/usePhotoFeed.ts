@@ -4,7 +4,10 @@ import type { Photo, PhotoFeedFilters, PhotoPage } from "@/types/photo";
  * Paginated, filter-aware feed of approved photos.
  * The first page is rendered on the server; "load more" appends client-side.
  */
-export async function usePhotoFeed(filters: Ref<PhotoFeedFilters>) {
+export async function usePhotoFeed(
+  filters: Ref<PhotoFeedFilters>,
+  endpoint = "/api/photo/get-all"
+) {
   const query = computed(() => {
     const entries = Object.entries(filters.value).filter(
       ([, value]) => typeof value === "string" && value.length > 0
@@ -13,8 +16,8 @@ export async function usePhotoFeed(filters: Ref<PhotoFeedFilters>) {
   });
 
   const { data, status, error, refresh } = await useAsyncData<PhotoPage>(
-    () => `photo-feed:${JSON.stringify(query.value)}`,
-    () => $fetch<PhotoPage>("/api/photo/get-all", { query: query.value }),
+    () => `${endpoint}:${JSON.stringify(query.value)}`,
+    () => $fetch<PhotoPage>(endpoint, { query: query.value }),
     { watch: [query] }
   );
 
@@ -45,7 +48,7 @@ export async function usePhotoFeed(filters: Ref<PhotoFeedFilters>) {
     loadMoreError.value = null;
 
     try {
-      const page = await $fetch<PhotoPage>("/api/photo/get-all", {
+      const page = await $fetch<PhotoPage>(endpoint, {
         query: { ...query.value, cursor: nextCursor.value },
       });
       extra.value.push(...page.items);

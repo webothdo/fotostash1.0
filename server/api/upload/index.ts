@@ -106,7 +106,10 @@ export default defineEventHandler(async (event) => {
     nanoid(8);
   try {
     const fileBuffer = Buffer.from(fileEntry.data);
-    const localDimensions = await getImageDimensions(fileBuffer);
+    const [localDimensions, localExif] = await Promise.all([
+      getImageDimensions(fileBuffer),
+      getImageExif(fileBuffer),
+    ]);
 
     const uploadedPhoto = await imagekitServer().upload({
       file: fileBuffer,
@@ -133,6 +136,7 @@ export default defineEventHandler(async (event) => {
       title: nameEntry,
       description: descriptionEntry || null,
       tags: parseTags(tagsEntry),
+      exif: localExif,
       slug: slug,
       height: height,
       width: width,

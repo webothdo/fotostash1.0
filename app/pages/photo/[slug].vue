@@ -11,11 +11,14 @@ import { imageKitSrcSet, imageKitUrl } from "@/lib/imagekit";
 
 const route = useRoute();
 const slug = String(route.params.slug ?? "");
-const { data, status, error }: any = await useFetch(`/api/photo/${slug}`, {
-  lazy: true,
-});
+const { data, status, error }: any = await useFetch(`/api/photo/${slug}`);
 
 const photo = computed(() => data.value);
+
+if (import.meta.server && (error.value || !photo.value)) {
+  setResponseStatus(404);
+}
+
 const { user: authUser } = useAuth();
 const liking = ref(false);
 const saveOpen = ref(false);
@@ -126,12 +129,61 @@ useHead(() => ({
     : [],
 }));
 
+const exifRows = computed(() => {
+  const exif = photo.value?.exif;
+  if (!exif) return [];
+
+  const shutter = (() => {
+    const seconds = exif.shutterSpeed;
+    if (!seconds || seconds <= 0) return undefined;
+    if (seconds >= 1) return `${seconds}s`;
+    return `1/${Math.round(1 / seconds)}s`;
+  })();
+
+  return [
+    { label: "Camera", value: exif.camera },
+    { label: "Lens", value: exif.lens },
+    { label: "Aperture", value: exif.aperture ? `f/${exif.aperture}` : undefined },
+    { label: "Shutter", value: shutter },
+    { label: "ISO", value: exif.iso ? `${exif.iso}` : undefined },
+    {
+      label: "Focal length",
+      value: exif.focalLength ? `${exif.focalLength}mm` : undefined,
+    },
+  ].filter((row) => Boolean(row.value));
+});
+
+const takenAt = computed(() => {
+  const value = photo.value?.exif?.takenAt;
+  if (!value) return undefined;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return undefined;
+  return date.toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+});
+
+const downloadCount = ref<number | null>(null);
+const shownDownloads = computed(
+  () => downloadCount.value ?? Number(photo.value?.downloads ?? 0)
+);
+
 const isLoading = ref(false);
 async function downloadImage() {
   if (!photo.value?.url) return;
+
+  isLoading.value = true;
+
   try {
-    isLoading.value = true;
-    const response = await fetch(photo.value.url, { mode: "cors" });
+    const info = await $fetch<{ url: string; downloads: number }>(
+      `/api/photo/${photo.value.id}/download`,
+      { method: "POST" }
+    );
+    downloadCount.value = info.downloads;
+
+    const response = await fetch(info.url, { mode: "cors" });
     const blob = await response.blob();
     const url = window.URL.createObjectURL(blob);
     const link = document.createElement("a");
@@ -141,10 +193,10 @@ async function downloadImage() {
     link.click();
     document.body.removeChild(link);
     window.URL.revokeObjectURL(url);
-    isLoading.value = false;
   } catch (e) {
     // fallback for browsers or CORS errors
     window.open(photo.value.url, "_blank");
+  } finally {
     isLoading.value = false;
   }
 }
@@ -234,6 +286,23 @@ async function downloadImage() {
               >#{{ tag }}</NuxtLink
             >
           </div>
+
+          <dl
+            v-if="exifRows.length"
+            class="mb-3 grid grid-cols-2 gap-x-4 gap-y-3 rounded-lg border bg-muted/30 p-4 sm:grid-cols-3"
+          >
+            <div v-for="row in exifRows" :key="row.label">
+              <dt
+                class="text-[10px] uppercase tracking-[0.12em] text-muted-foreground"
+              >
+                {{ row.label }}
+              </dt>
+              <dd class="mt-0.5 text-sm font-medium">{{ row.value }}</dd>
+            </div>
+          </dl>
+          <p v-if="takenAt" class="mb-4 text-xs text-muted-foreground">
+            Shot on {{ takenAt }}
+          </p>
         </div>
         <div class="flex flex-col gap-3 mt-8">
           <div class="flex flex-wrap items-center gap-2">
@@ -267,7 +336,11 @@ async function downloadImage() {
             >{{ isLoading ? "Downloading..." : "Download Free" }}</Button
           >
           <div class="text-xs text-muted-foreground mt-2">
-            Free to use under Fotostash License
+            Free to use under the Fotostash License
+          </div>
+          <div class="text-xs text-muted-foreground">
+            {{ shownDownloads }}
+            {{ shownDownloads === 1 ? "download" : "downloads" }}
           </div>
           <div class="text-xs text-muted-foreground">
             Published on {{ useFormatDate(photo.createdAt) }}
@@ -278,6 +351,23 @@ async function downloadImage() {
     <div v-else class="text-lg text-muted-foreground py-20">
       No photo found.
     </div>
+
+    <section
+      v-if="photo?.related?.length"
+      class="mt-12 w-full max-w-5xl px-2 pb-8"
+    >
+      <div class="mb-4 flex items-end justify-between gap-3 px-2">
+        <h2 class="text-xl font-semibold">More like this</h2>
+        <NuxtLink
+          v-if="photo.tags?.length"
+          :to="`/tag/${encodeURIComponent(photo.tags[0])}`"
+          class="text-xs text-muted-foreground transition-colors hover:text-foreground"
+        >
+          Browse #{{ photo.tags[0] }}
+        </NuxtLink>
+      </div>
+      <MasonryComp :items="photo.related" />
+    </section>
 
     <SaveToCollectionComp
       v-if="photo"

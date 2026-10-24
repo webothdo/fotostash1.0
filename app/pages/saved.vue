@@ -7,6 +7,7 @@ import {
   Loader2,
   Lock,
   Plus,
+  Users,
 } from "lucide-vue-next";
 import { toast } from "vue-sonner";
 import { imageKitUrl } from "@/lib/imagekit";
@@ -126,10 +127,18 @@ async function createCollection() {
           Photos you liked and collections you have put together.
         </p>
       </div>
-      <Button @click="showCreate = !showCreate">
-        <Plus class="size-4" />
-        New collection
-      </Button>
+      <div class="flex flex-wrap gap-2">
+        <Button variant="outline" as-child>
+          <NuxtLink to="/following">
+            <Users class="size-4" />
+            Following feed
+          </NuxtLink>
+        </Button>
+        <Button @click="showCreate = !showCreate">
+          <Plus class="size-4" />
+          New collection
+        </Button>
+      </div>
     </header>
 
     <form

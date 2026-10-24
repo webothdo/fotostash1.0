@@ -47,9 +47,15 @@ export default defineEventHandler(async (event) => {
     }
   }
 
-  const [likeCount, isLiked] = await Promise.all([
+  const [likeCount, isLiked, related] = await Promise.all([
     countPhotoLikes(singlePhoto.id),
     viewer ? isPhotoLiked(viewer.id, singlePhoto.id) : Promise.resolve(false),
+    getRelatedPhotos({
+      id: singlePhoto.id,
+      userId: singlePhoto.userId,
+      tags: singlePhoto.tags,
+      limit: 8,
+    }),
   ]);
 
   setHeader(event, "cache-control", "private, no-store");
@@ -58,5 +64,6 @@ export default defineEventHandler(async (event) => {
     ...singlePhoto,
     likeCount,
     isLiked,
+    related,
   };
 });

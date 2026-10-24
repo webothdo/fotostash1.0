@@ -7,6 +7,16 @@ import {
 } from "drizzle-orm/sqlite-core";
 import { nanoid } from "nanoid";
 
+export interface PhotoExif {
+  camera?: string;
+  lens?: string;
+  iso?: number;
+  aperture?: number;
+  shutterSpeed?: number;
+  focalLength?: number;
+  takenAt?: string;
+}
+
 export const users = sqliteTable("users", {
   id: text("id")
     .primaryKey()
@@ -39,7 +49,9 @@ export const photos = sqliteTable("photos", {
     .unique()
     .$defaultFn(() => nanoid()),
   url: text("url").notNull(),
-  tags: text("tags", { mode: "json" }),
+  tags: text("tags", { mode: "json" }).$type<string[] | null>(),
+  exif: text("exif", { mode: "json" }).$type<PhotoExif | null>(),
+  downloads: integer("downloads").default(0).notNull(),
   height: integer("height").default(600).notNull(),
   width: integer("width"),
   approved: integer("approved", { mode: "boolean" }).default(false),
@@ -131,5 +143,27 @@ export const collectionPhotos = sqliteTable(
       table.photoId
     ),
     index("collection_photos_photo_idx").on(table.photoId),
+  ]
+);
+
+export const follows = sqliteTable(
+  "follows",
+  {
+    id: text("id")
+      .primaryKey()
+      .$default(() => nanoid()),
+    followerId: text("follower_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    followingId: text("following_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    createdAt: integer("created_at", { mode: "timestamp" })
+      .$defaultFn(() => new Date())
+      .notNull(),
+  },
+  (table) => [
+    uniqueIndex("follows_unique").on(table.followerId, table.followingId),
+    index("follows_following_idx").on(table.followingId),
   ]
 );

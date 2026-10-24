@@ -1,5 +1,8 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, ref, watch } from "vue";
+import { Loader2, UserCheck, UserPlus } from "lucide-vue-next";
+import { toast } from "vue-sonner";
+import { Button } from "@/components/ui/button";
 import { imageKitUrl } from "@/lib/imagekit";
 
 definePageMeta({
@@ -11,6 +14,54 @@ const username = String(route.params.username ?? "");
 const cleanedUsername = username.replace(/^@/, "");
 
 const { data, status } = await useFetch(`/api/profile/${username}`);
+
+if (import.meta.server && status.value === "error") {
+  setResponseStatus(404);
+}
+
+const { user: authUser } = useAuth();
+const following = ref(false);
+const followerCount = ref(0);
+const togglingFollow = ref(false);
+
+watch(
+  data,
+  (profile: any) => {
+    if (!profile) return;
+    following.value = Boolean(profile.isFollowing);
+    followerCount.value = Number(profile.followerCount ?? 0);
+  },
+  { immediate: true }
+);
+
+async function toggleFollow() {
+  if (!authUser?.id) {
+    return navigateTo("/api/login", { external: true });
+  }
+
+  const username = data.value?.username;
+
+  if (!username || togglingFollow.value) return;
+  togglingFollow.value = true;
+
+  try {
+    const result = await $fetch<{
+      following: boolean;
+      followerCount: number;
+    }>(`/api/follow/${username}`, { method: "POST" });
+    following.value = result.following;
+    followerCount.value = result.followerCount;
+    toast.success(
+      result.following ? `Following @${username}` : `Unfollowed @${username}`
+    );
+  } catch (error) {
+    toast.error("Could not update follow", {
+      description: (error as Error).message,
+    });
+  } finally {
+    togglingFollow.value = false;
+  }
+}
 
 const siteUrl = useSiteUrl();
 const canonicalUrl = computed(() => `${siteUrl}/@${cleanedUsername}`);
@@ -92,14 +143,35 @@ useHead(() => ({
             }}</span>
             <span class="text-xs text-muted-foreground">Photos</span>
           </div>
+          <div class="flex flex-col items-center">
+            <span class="font-semibold text-lg">{{ followerCount }}</span>
+            <span class="text-xs text-muted-foreground">Followers</span>
+          </div>
+          <div v-if="data?.followingCount" class="flex flex-col items-center">
+            <span class="font-semibold text-lg">{{ data.followingCount }}</span>
+            <span class="text-xs text-muted-foreground">Following</span>
+          </div>
           <div
-            v-if="data.isOwner && data.pendingPhotoCount"
+            v-if="data?.isOwner && data.pendingPhotoCount"
             class="flex flex-col items-center"
           >
             <span class="font-semibold text-lg">{{ data.pendingPhotoCount }}</span>
             <span class="text-xs text-muted-foreground">In review</span>
           </div>
         </div>
+
+        <Button
+          v-if="!data?.isOwner"
+          class="mt-3"
+          :variant="following ? 'outline' : 'default'"
+          :disabled="togglingFollow"
+          @click="toggleFollow"
+        >
+          <Loader2 v-if="togglingFollow" class="animate-spin" />
+          <UserCheck v-else-if="following" class="size-4" />
+          <UserPlus v-else class="size-4" />
+          {{ following ? "Following" : "Follow" }}
+        </Button>
         <p
           v-if="data?.isOwner"
           class="mt-2 rounded-full bg-muted px-3 py-1 text-xs text-muted-foreground"

@@ -150,6 +150,13 @@ const submitSearch = () => {
               Saved
             </NuxtLink>
             <NuxtLink
+              to="/following"
+              class="rounded-md px-3 py-2 transition-colors hover:bg-accent hover:text-accent-foreground"
+              @click="closeMobile"
+            >
+              Following
+            </NuxtLink>
+            <NuxtLink
               to="/profile"
               class="rounded-md px-3 py-2 transition-colors hover:bg-accent hover:text-accent-foreground"
               @click="closeMobile"

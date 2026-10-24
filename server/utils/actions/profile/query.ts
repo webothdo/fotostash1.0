@@ -5,6 +5,17 @@ export const getPublicUserProfileWithUsername = async (
   const db = useDb();
   const user = await db.query.users.findFirst({
     where: (user, { eq }) => eq(user.username, username),
+    columns: {
+      id: true,
+      name: true,
+      username: true,
+      displayUsername: true,
+      picture: true,
+      bio: true,
+      firstName: true,
+      lastName: true,
+      createdAt: true,
+    },
   });
 
   if (!user) return null;
@@ -22,12 +33,18 @@ export const getPublicUserProfileWithUsername = async (
     orderBy: (photo, { desc }) => [desc(photo.createdAt)],
   });
 
-  const userCollections = await listPublicCollectionsForUser(user.id, viewerId);
+  const [userCollections, followCounts, viewerFollows] = await Promise.all([
+    listPublicCollectionsForUser(user.id, viewerId),
+    getFollowCounts(user.id),
+    viewerId ? isFollowing(viewerId, user.id) : Promise.resolve(false),
+  ]);
 
   return {
     ...user,
     photos,
     collections: userCollections,
+    ...followCounts,
+    isFollowing: viewerFollows,
     isOwner,
     approvedPhotoCount: photos.filter((photo) => photo.approved).length,
     pendingPhotoCount: photos.filter((photo) => !photo.approved && !photo.rejected)

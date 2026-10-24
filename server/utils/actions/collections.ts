@@ -247,6 +247,7 @@ export const listPublicCollectionsForUser = async (
               title: true,
               width: true,
               height: true,
+              approved: true,
             },
           },
         },
@@ -256,11 +257,17 @@ export const listPublicCollectionsForUser = async (
     orderBy: (collection, { desc }) => [desc(collection.updatedAt)],
   });
 
-  return rows.map((collection) => ({
-    ...collection,
-    photoCount: collection.photos.length,
-    previewPhotos: collection.photos
-      .flatMap((link) => ("photo" in link && link.photo ? [link.photo] : []))
-      .slice(0, 4),
-  }));
+  return rows.map((collection) => {
+    const visibleLinks = collection.photos.filter(
+      (link) => isOwner || Boolean(link.photo?.approved)
+    );
+
+    return {
+      ...collection,
+      photoCount: visibleLinks.length,
+      previewPhotos: visibleLinks
+        .flatMap((link) => (link.photo ? [link.photo] : []))
+        .slice(0, 4),
+    };
+  });
 };

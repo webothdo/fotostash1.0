@@ -198,7 +198,7 @@ onMounted(() => {
       <button
         v-if="removable"
         type="button"
-        class="absolute right-2 top-2 z-10 flex size-8 items-center justify-center rounded-full bg-black/60 text-white opacity-0 shadow-sm backdrop-blur transition-opacity hover:bg-black/80 focus-visible:opacity-100 group-hover:opacity-100"
+        class="absolute right-2 top-2 z-10 flex size-8 items-center justify-center rounded-full bg-black/60 text-white opacity-100 shadow-sm backdrop-blur transition-opacity hover:bg-black/80 focus-visible:opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
         :aria-label="`Remove ${item.title || 'photo'} from this collection`"
         @click="emit('remove', item)"
       >

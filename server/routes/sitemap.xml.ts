@@ -1,5 +1,5 @@
 import { eq, isNotNull } from "drizzle-orm";
-import { photos, users } from "~~/server/db/schema";
+import { collections, photos, users } from "~~/server/db/schema";
 import { getPopularTags } from "~~/server/utils/actions/photo/query";
 
 const escapeXml = (value: string) =>
@@ -18,7 +18,7 @@ const escapeXml = (value: string) =>
 export default defineEventHandler(async (event) => {
   const baseUrl = getSiteUrl(event);
 
-  const [photoRows, userRows, tagRows] = await Promise.all([
+  const [photoRows, userRows, tagRows, collectionRows] = await Promise.all([
     useDb()
       .select({ slug: photos.slug, updatedAt: photos.updatedAt })
       .from(photos)
@@ -28,6 +28,10 @@ export default defineEventHandler(async (event) => {
       .from(users)
       .where(isNotNull(users.username)),
     getPopularTags(100),
+    useDb()
+      .select({ id: collections.id, updatedAt: collections.updatedAt })
+      .from(collections)
+      .where(eq(collections.isPrivate, false)),
   ]);
 
   const urls = [
@@ -47,6 +51,10 @@ export default defineEventHandler(async (event) => {
     ...tagRows.map(({ tag }) => ({
       loc: `${baseUrl}/tag/${encodeURIComponent(tag)}`,
       lastmod: undefined,
+    })),
+    ...collectionRows.map((collection) => ({
+      loc: `${baseUrl}/collections/${encodeURIComponent(collection.id)}`,
+      lastmod: collection.updatedAt?.toISOString().slice(0, 10),
     })),
   ];
 
