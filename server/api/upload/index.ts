@@ -60,6 +60,14 @@ export default defineEventHandler(async (event) => {
   const nameEntry = formData
     .find((entry) => entry.name === "name")
     ?.data.toString();
+  const descriptionEntry = formData
+    .find((entry) => entry.name === "description")
+    ?.data.toString()
+    .trim()
+    .slice(0, 600);
+  const tagsEntry = formData
+    .find((entry) => entry.name === "tags")
+    ?.data.toString();
 
   if (!nameEntry) {
     throw createError({
@@ -123,6 +131,8 @@ export default defineEventHandler(async (event) => {
       userId: data?.id!,
       url: uploadedPhoto.url,
       title: nameEntry,
+      description: descriptionEntry || null,
+      tags: parseTags(tagsEntry),
       slug: slug,
       height: height,
       width: width,

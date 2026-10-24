@@ -11,6 +11,11 @@ definePageMeta({
   middleware: "auth",
 });
 
+useSeoMeta({
+  title: "Upload — Fotostash",
+  robots: "noindex",
+});
+
 const SUPPORTED_TYPES = [
   "image/jpeg",
   "image/png",
@@ -24,8 +29,26 @@ const fileInput = ref<HTMLInputElement | null>(null);
 const selectedFile = ref<File | null>(null);
 const previewUrl = ref<string | null>(null);
 const name = ref("");
+const description = ref("");
+const tagsInput = ref("");
 const isDragging = ref(false);
 const isLoading = ref(false);
+
+const tags = computed(() => {
+  const values = tagsInput.value
+    .split(",")
+    .map((tag) =>
+      tag
+        .trim()
+        .toLowerCase()
+        .replace(/^#+/, "")
+        .replace(/\s+/g, "-")
+        .replace(/[^\p{L}\p{N}_-]+/gu, "")
+    )
+    .filter(Boolean);
+
+  return [...new Set(values)].slice(0, 8);
+});
 
 const fileSize = computed(() => {
   const size = selectedFile.value?.size ?? 0;
@@ -88,6 +111,8 @@ function clearSelection() {
   }
   selectedFile.value = null;
   name.value = "";
+  description.value = "";
+  tagsInput.value = "";
   isDragging.value = false;
   if (fileInput.value) fileInput.value.value = "";
 }
@@ -100,6 +125,8 @@ async function upload() {
   try {
     const formData = new FormData();
     formData.append("name", name.value.trim());
+    formData.append("description", description.value.trim());
+    formData.append("tags", JSON.stringify(tags.value));
     formData.append("image", selectedFile.value);
 
     await $fetch("/api/upload", {
@@ -108,7 +135,8 @@ async function upload() {
     });
 
     toast.success("Photo uploaded", {
-      description: "Your photo has been added to your profile.",
+      description:
+        "It is now pending review and visible on your own profile until approved.",
     });
     clearSelection();
   } catch (error) {
@@ -230,13 +258,52 @@ onBeforeUnmount(() => {
               </p>
             </div>
 
+            <div class="space-y-2">
+              <Label for="photo-description">Description</Label>
+              <textarea
+                id="photo-description"
+                v-model="description"
+                rows="3"
+                maxlength="600"
+                placeholder="Tell people what makes this image special."
+                :disabled="isLoading"
+                class="flex w-full resize-y rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs outline-none transition-[color,box-shadow] placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50"
+              />
+              <p class="text-right text-xs text-muted-foreground">
+                {{ description.length }}/600
+              </p>
+            </div>
+
+            <div class="space-y-2">
+              <Label for="photo-tags">Tags</Label>
+              <Input
+                id="photo-tags"
+                v-model="tagsInput"
+                placeholder="nature, sunset, travel"
+                :disabled="isLoading"
+                @keydown.enter.prevent
+              />
+              <p class="text-xs text-muted-foreground">
+                Comma-separated, up to 8. Tags help people discover your photo.
+              </p>
+              <div v-if="tags.length" class="flex flex-wrap gap-1.5">
+                <span
+                  v-for="tag in tags"
+                  :key="tag"
+                  class="rounded-full bg-muted px-2.5 py-1 text-xs text-foreground"
+                >
+                  #{{ tag }}
+                </span>
+              </div>
+            </div>
+
             <div
               class="rounded-lg border bg-muted/30 p-3 text-xs text-muted-foreground"
             >
               <p class="font-medium text-foreground">Before you upload</p>
               <p class="mt-1">
-                Only upload images you have the right to share. Your photo will
-                be added to your profile.
+                Only upload images you have the right to share. New photos are
+                reviewed before they appear in the public gallery.
               </p>
             </div>
 

@@ -3,6 +3,11 @@ definePageMeta({
   middleware: "auth",
 });
 
+useSeoMeta({
+  title: "Your profile — Fotostash",
+  robots: "noindex",
+});
+
 const { user } = useAuth();
 
 const { data, status, error }: any = await useFetch("/api/user", {

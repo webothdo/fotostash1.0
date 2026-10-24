@@ -1,17 +1,87 @@
 <script setup lang="ts">
-import { ref, computed } from "vue";
+import { computed, ref } from "vue";
 import { useRoute } from "vue-router";
 import Card from "@/components/ui/card/Card.vue";
 import CardContent from "@/components/ui/card/CardContent.vue";
 import Button from "@/components/ui/button/Button.vue";
 import Avatar from "@/components/ui/avatar/Avatar.vue";
+import { imageKitSrcSet, imageKitUrl } from "@/lib/imagekit";
 
-const slug = useRoute().params.slug;
+const route = useRoute();
+const slug = String(route.params.slug ?? "");
 const { data, status, error }: any = await useFetch(`/api/photo/${slug}`, {
   lazy: true,
 });
 
 const photo = computed(() => data.value);
+
+const siteUrl = useSiteUrl();
+const canonicalUrl = computed(() => `${siteUrl}/photo/${slug}`);
+const pageTitle = computed(() =>
+  photo.value?.title ? `${photo.value.title} — Fotostash` : "Photo — Fotostash"
+);
+const pageDescription = computed(() => {
+  if (photo.value?.description) return photo.value.description;
+
+  const title = photo.value?.title || "A photo";
+  const author = photo.value?.user?.username
+    ? ` by @${photo.value.user.username}`
+    : "";
+
+  return `${title}${author} on Fotostash.`;
+});
+const ogImage = computed(() =>
+  photo.value?.url ? imageKitUrl(photo.value.url, 1200) : undefined
+);
+
+useSeoMeta({
+  title: pageTitle,
+  description: pageDescription,
+  ogTitle: pageTitle,
+  ogDescription: pageDescription,
+  ogImage,
+  ogType: "article",
+  ogUrl: canonicalUrl,
+  twitterCard: "summary_large_image",
+  twitterImage: ogImage,
+});
+
+useHead(() => ({
+  link: [{ rel: "canonical", href: canonicalUrl.value }],
+  script: photo.value
+    ? [
+        {
+          type: "application/ld+json",
+          innerHTML: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "ImageObject",
+            name: photo.value.title ?? "Photo",
+            description: photo.value.description ?? undefined,
+            contentUrl: photo.value.url,
+            thumbnailUrl: imageKitUrl(photo.value.url, 400),
+            uploadDate: photo.value.createdAt ?? undefined,
+            width: photo.value.width ?? undefined,
+            height: photo.value.height ?? undefined,
+            author: photo.value.user
+              ? {
+                  "@type": "Person",
+                  name:
+                    photo.value.user.name ||
+                    photo.value.user.username ||
+                    "Unknown author",
+                  alternateName: photo.value.user.username
+                    ? `@${photo.value.user.username}`
+                    : undefined,
+                  url: photo.value.user.username
+                    ? `${siteUrl}/@${photo.value.user.username}`
+                    : undefined,
+                }
+              : undefined,
+          }).replace(/</g, "\\u003c"),
+        },
+      ]
+    : [],
+}));
 
 const isLoading = ref(false);
 async function downloadImage() {
@@ -45,8 +115,11 @@ async function downloadImage() {
     >
       Loading...
     </div>
-    <div v-else-if="error" class="text-destructive py-20">
-      Failed to load image.
+    <div v-else-if="error" class="text-destructive py-20 text-center px-4">
+      <p class="font-medium">Photo not found</p>
+      <p class="mt-1 text-sm text-muted-foreground">
+        It may have been removed or not approved yet.
+      </p>
     </div>
     <Card
       v-else-if="photo"
@@ -55,14 +128,26 @@ async function downloadImage() {
       <!-- Image Section -->
       <div class="flex-1 flex items-center justify-center bg-muted p-4">
         <img
-          :src="photo.url"
+          :src="imageKitUrl(photo.url, 1600)"
+          :srcset="imageKitSrcSet(photo.url)"
+          sizes="(min-width: 768px) 55vw, 100vw"
+          :width="photo.width ?? undefined"
+          :height="photo.height ?? undefined"
           :alt="photo.title || 'Photo'"
+          decoding="async"
           class="max-h-[70vh] w-auto max-w-full rounded-lg object-contain shadow-md"
         />
       </div>
       <!-- Details Section -->
       <CardContent class="flex-1 flex flex-col justify-between gap-6 py-6">
         <div>
+          <div
+            v-if="photo.approved === false"
+            class="mb-3 inline-flex rounded-full px-2.5 py-1 text-xs font-medium text-white"
+            :class="photo.rejected ? 'bg-destructive' : 'bg-amber-500'"
+          >
+            {{ photo.rejected ? "Rejected" : "Pending review" }}
+          </div>
           <h1 class="text-2xl font-bold mb-2">
             {{ photo.title || "Untitled Photo" }}
           </h1>
@@ -79,7 +164,7 @@ async function downloadImage() {
               <AvatarImage
                 v-if="photo.user?.picture"
                 :src="photo.user.picture"
-                alt="@radix-vue"
+                alt="Author avatar"
               />
               <AvatarFallback>CN</AvatarFallback>
             </Avatar>
@@ -98,11 +183,12 @@ async function downloadImage() {
             v-if="photo.tags && photo.tags.length"
             class="flex flex-wrap gap-2 mb-4"
           >
-            <span
+            <NuxtLink
               v-for="tag in photo.tags"
               :key="tag"
-              class="inline-block rounded-full bg-muted px-3 py-1 text-xs text-foreground"
-              >#{{ tag }}</span
+              :to="`/tag/${encodeURIComponent(tag)}`"
+              class="inline-block rounded-full bg-muted px-3 py-1 text-xs text-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+              >#{{ tag }}</NuxtLink
             >
           </div>
         </div>

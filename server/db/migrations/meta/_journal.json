@@ -57,6 +57,13 @@
       "when": 1752868393163,
       "tag": "0007_busy_millenium_guard",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "6",
+      "when": 1792883283476,
+      "tag": "0008_red_jackal",
+      "breakpoints": true
     }
   ]
 }

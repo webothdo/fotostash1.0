@@ -1,4 +1,4 @@
-import { text, sqliteTable, integer } from "drizzle-orm/sqlite-core";
+import { text, sqliteTable, integer, index } from "drizzle-orm/sqlite-core";
 import { nanoid } from "nanoid";
 
 export const users = sqliteTable("users", {
@@ -28,6 +28,7 @@ export const photos = sqliteTable("photos", {
     .primaryKey()
     .$default(() => nanoid()),
   title: text("title"),
+  description: text("description"),
   slug: text("slug")
     .unique()
     .$defaultFn(() => nanoid()),
@@ -49,4 +50,8 @@ export const photos = sqliteTable("photos", {
   updatedAt: integer("updated_at", { mode: "timestamp" }).$defaultFn(
     () => new Date()
   ),
-});
+},
+(table) => [
+  index("photos_approved_created_idx").on(table.approved, table.createdAt),
+  index("photos_user_created_idx").on(table.userId, table.createdAt),
+]);

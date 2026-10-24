@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Button } from "@/components/ui/button";
+import { imageKitSrcSet, imageKitUrl } from "@/lib/imagekit";
 import { toast } from "vue-sonner";
 
 definePageMeta({
@@ -31,8 +32,13 @@ const {
   status,
   error,
   refresh,
-} = await useFetch<Photo[]>("/api/photo/get-all", {
+} = await useFetch<Photo[]>("/api/admin/photos", {
   lazy: true,
+});
+
+useSeoMeta({
+  title: "Admin — Fotostash",
+  robots: "noindex",
 });
 
 const handleApprove = async (photoId: string) => {
@@ -115,8 +121,12 @@ const handleReject = async (photoId: string) => {
         >
           <div class="relative">
             <img
-              :src="photo.url"
+              :src="imageKitUrl(photo.url, 640)"
+              :srcset="imageKitSrcSet(photo.url)"
+              sizes="(min-width: 1280px) 25vw, (min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
               :alt="photo.title || 'Photo'"
+              loading="lazy"
+              decoding="async"
               class="w-full h-64 object-cover"
             />
             <div class="absolute top-2 right-2 flex gap-2">

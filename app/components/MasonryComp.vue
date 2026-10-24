@@ -1,6 +1,11 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import { gsap } from "gsap";
+import {
+  IMAGE_SIZES,
+  imageKitSrcSet,
+  imageKitUrl,
+} from "@/lib/imagekit";
 
 interface Item {
   slug?: string | null;
@@ -10,6 +15,8 @@ interface Item {
   title?: string | null;
   height: number;
   width?: number | null;
+  approved?: boolean | null;
+  rejected?: boolean | null;
 }
 
 interface MasonryProps {
@@ -40,6 +47,7 @@ const loadedImages = ref<Record<string, boolean>>({});
 
 const imageUrl = (item: Item) => item.img ?? item.url;
 const imageAlt = (item: Item) => item.title ?? "Photo";
+const photoUrl = (item: Item) => `/photo/${item.slug ?? item.id}`;
 
 const hasDimensions = (item: Item): item is Item & { width: number } =>
   typeof item.width === "number" && item.width > 0 && item.height > 0;
@@ -47,12 +55,11 @@ const hasDimensions = (item: Item): item is Item & { width: number } =>
 const aspectRatio = (item: Item) =>
   hasDimensions(item) ? `${item.width} / ${item.height}` : "3 / 2";
 
+const statusLabel = (item: Item) =>
+  item.rejected ? "Rejected" : "Pending review";
+
 const markLoaded = (id: string) => {
   loadedImages.value[id] = true;
-};
-
-const openUrl = (item: Item) => {
-  navigateTo(`/photo/${item.slug ?? item.id}`);
 };
 
 const handleMouseEnter = (event: MouseEvent) => {
@@ -129,12 +136,13 @@ onMounted(() => {
     ref="root"
     class="columns-1 gap-4 min-[400px]:columns-2 min-[600px]:columns-3 min-[1000px]:columns-4 min-[1500px]:columns-5"
   >
-    <div
+    <NuxtLink
       v-for="item in items"
       :key="item.id"
+      :to="photoUrl(item)"
+      :aria-label="item.title ? `View ${item.title}` : 'View photo'"
       data-masonry-item
-      class="group relative mb-4 break-inside-avoid cursor-pointer overflow-hidden rounded-[10px] shadow-[0px_10px_50px_-10px_rgba(0,0,0,0.2)]"
-      @click="openUrl(item)"
+      class="group relative mb-4 block break-inside-avoid cursor-pointer overflow-hidden rounded-[10px] shadow-[0px_10px_50px_-10px_rgba(0,0,0,0.2)]"
       @mouseenter="handleMouseEnter"
       @mouseleave="handleMouseLeave"
     >
@@ -149,11 +157,14 @@ onMounted(() => {
         />
         <img
           :data-photo-id="item.id"
-          :src="imageUrl(item)"
+          :src="imageKitUrl(imageUrl(item), 960)"
+          :srcset="imageKitSrcSet(imageUrl(item))"
+          :sizes="IMAGE_SIZES"
           :alt="imageAlt(item)"
           :width="item.width ?? undefined"
           :height="item.height ?? undefined"
           loading="lazy"
+          decoding="async"
           class="h-full w-full transition-opacity duration-500"
           :class="[
             loadedImages[item.id] ? 'opacity-100' : 'opacity-0',
@@ -166,7 +177,14 @@ onMounted(() => {
           v-if="colorShiftOnHover"
           class="color-overlay absolute inset-0 bg-gradient-to-tr from-pink-500/50 to-sky-500/50 opacity-0 transition-opacity duration-300 group-hover:opacity-30"
         />
+        <span
+          v-if="item.approved === false"
+          class="absolute left-2 top-2 rounded-full px-2.5 py-1 text-[11px] font-medium text-white shadow-sm"
+          :class="item.rejected ? 'bg-destructive' : 'bg-amber-500'"
+        >
+          {{ statusLabel(item) }}
+        </span>
       </div>
-    </div>
+    </NuxtLink>
   </div>
 </template>

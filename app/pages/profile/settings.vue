@@ -18,6 +18,11 @@ definePageMeta({
   middleware: "auth",
 });
 
+useSeoMeta({
+  title: "Profile settings — Fotostash",
+  robots: "noindex",
+});
+
 const loginLoading = ref(false);
 const usernameAvailable = ref<boolean | null>(null); // null = untouched, true = available, false = taken
 const usernamePending = ref(false);

@@ -17,6 +17,9 @@ export default defineNuxtConfig({
     plugins: [tailwindcss()],
   },
   runtimeConfig: {
+    public: {
+      siteUrl: process.env.NUXT_PUBLIC_SITE_URL || "",
+    },
     betterAuthSecret: process.env.BETTER_AUTH_SECRET,
     betterAuthUrl: process.env.BETTER_AUTH_URL,
     githubClientId: process.env.GITHUB_CLIENT_ID,
