@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import { useRoute } from "vue-router";
+import { Bookmark, Heart, Loader2 } from "lucide-vue-next";
+import { toast } from "vue-sonner";
 import Card from "@/components/ui/card/Card.vue";
 import CardContent from "@/components/ui/card/CardContent.vue";
 import Button from "@/components/ui/button/Button.vue";
@@ -14,6 +16,47 @@ const { data, status, error }: any = await useFetch(`/api/photo/${slug}`, {
 });
 
 const photo = computed(() => data.value);
+const { user: authUser } = useAuth();
+const liking = ref(false);
+const saveOpen = ref(false);
+const likeOverride = ref<{ liked: boolean; count: number } | null>(null);
+
+const isLiked = computed(
+  () => likeOverride.value?.liked ?? Boolean(photo.value?.isLiked)
+);
+const likeCount = computed(
+  () => likeOverride.value?.count ?? Number(photo.value?.likeCount ?? 0)
+);
+
+async function toggleLike() {
+  if (!authUser?.id) {
+    return navigateTo("/api/login", { external: true });
+  }
+
+  if (liking.value || !photo.value) return;
+  liking.value = true;
+
+  try {
+    const result = await $fetch<{ liked: boolean; likeCount: number }>(
+      `/api/photo/${photo.value.id}/like`,
+      { method: "POST" }
+    );
+    likeOverride.value = { liked: result.liked, count: result.likeCount };
+  } catch (error) {
+    toast.error("Could not update your like", {
+      description: (error as Error).message,
+    });
+  } finally {
+    liking.value = false;
+  }
+}
+
+function openSaveDialog() {
+  if (!authUser?.id) {
+    return navigateTo("/api/login", { external: true });
+  }
+  saveOpen.value = true;
+}
 
 const siteUrl = useSiteUrl();
 const canonicalUrl = computed(() => `${siteUrl}/photo/${slug}`);
@@ -193,6 +236,30 @@ async function downloadImage() {
           </div>
         </div>
         <div class="flex flex-col gap-3 mt-8">
+          <div class="flex flex-wrap items-center gap-2">
+            <Button
+              variant="outline"
+              :disabled="liking"
+              :aria-pressed="isLiked"
+              @click="toggleLike"
+            >
+              <Loader2 v-if="liking" class="animate-spin" />
+              <Heart
+                v-else
+                class="transition-colors"
+                :class="isLiked ? 'fill-rose-500 text-rose-500' : ''"
+              />
+              {{ isLiked ? "Liked" : "Like" }}
+              <span class="tabular-nums text-muted-foreground">
+                {{ likeCount }}
+              </span>
+            </Button>
+            <Button variant="outline" @click="openSaveDialog">
+              <Bookmark class="size-4" />
+              Save
+            </Button>
+          </div>
+
           <Button
             :disabled="isLoading"
             @click="downloadImage"
@@ -211,5 +278,11 @@ async function downloadImage() {
     <div v-else class="text-lg text-muted-foreground py-20">
       No photo found.
     </div>
+
+    <SaveToCollectionComp
+      v-if="photo"
+      v-model:open="saveOpen"
+      :photo-id="photo.id"
+    />
   </div>
 </template>

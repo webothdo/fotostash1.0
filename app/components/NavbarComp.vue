@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import { Menu, Search } from "lucide-vue-next";
+import { Bookmark, Menu, Search } from "lucide-vue-next";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -61,6 +61,11 @@ const submitSearch = () => {
       <template v-if="user?.id">
         <Button as-child>
           <NuxtLink to="/upload">Upload</NuxtLink>
+        </Button>
+        <Button as-child variant="ghost" size="icon">
+          <NuxtLink to="/saved" aria-label="Saved photos">
+            <Bookmark class="size-4" />
+          </NuxtLink>
         </Button>
         <NuxtLink to="/profile" aria-label="Your profile">
           <Avatar>
@@ -136,6 +141,13 @@ const submitSearch = () => {
               @click="closeMobile"
             >
               Upload
+            </NuxtLink>
+            <NuxtLink
+              to="/saved"
+              class="rounded-md px-3 py-2 transition-colors hover:bg-accent hover:text-accent-foreground"
+              @click="closeMobile"
+            >
+              Saved
             </NuxtLink>
             <NuxtLink
               to="/profile"

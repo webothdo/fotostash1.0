@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from "vue";
+import { imageKitUrl } from "@/lib/imagekit";
 
 definePageMeta({
   path: "/:username([@][\\w+\\-+]+)",
@@ -108,6 +109,54 @@ useHead(() => ({
         </p>
       </div>
     </Card>
+    <section
+      v-if="data?.collections?.length"
+      class="mb-10 w-full max-w-5xl px-2"
+    >
+      <div class="mb-4 flex items-end justify-between gap-3">
+        <h2 class="text-xl font-semibold">Collections</h2>
+        <span class="text-xs text-muted-foreground">
+          {{ data.collections.length }}
+          {{ data.collections.length === 1 ? "collection" : "collections" }}
+        </span>
+      </div>
+      <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <NuxtLink
+          v-for="collection in data.collections"
+          :key="collection.id"
+          :to="`/collections/${collection.id}`"
+          class="overflow-hidden rounded-xl border bg-card shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md"
+        >
+          <div class="grid h-28 grid-cols-2 gap-0.5 bg-muted">
+            <template v-if="collection.previewPhotos?.length">
+              <img
+                v-for="photo in collection.previewPhotos"
+                :key="photo.id"
+                :src="imageKitUrl(photo.url, 320)"
+                :alt="photo.title || 'Collection photo'"
+                class="h-full w-full object-cover"
+                loading="lazy"
+                decoding="async"
+              />
+            </template>
+            <div
+              v-else
+              class="col-span-2 flex h-full items-center justify-center bg-gradient-to-br from-muted to-accent text-xs text-muted-foreground"
+            >
+              Empty collection
+            </div>
+          </div>
+          <div class="p-3">
+            <p class="truncate text-sm font-medium">{{ collection.name }}</p>
+            <p class="mt-0.5 text-xs text-muted-foreground">
+              {{ collection.photoCount }}
+              {{ collection.photoCount === 1 ? "photo" : "photos" }}
+            </p>
+          </div>
+        </NuxtLink>
+      </div>
+    </section>
+
     <section id="user-images" class="w-full max-w-5xl">
       <MasonryLoadingComp v-if="status === 'pending'" />
       <MasonryComp v-if="status === 'success'" :items="data?.photos ?? []" />

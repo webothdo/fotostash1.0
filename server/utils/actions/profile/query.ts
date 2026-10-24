@@ -22,9 +22,12 @@ export const getPublicUserProfileWithUsername = async (
     orderBy: (photo, { desc }) => [desc(photo.createdAt)],
   });
 
+  const userCollections = await listPublicCollectionsForUser(user.id, viewerId);
+
   return {
     ...user,
     photos,
+    collections: userCollections,
     isOwner,
     approvedPhotoCount: photos.filter((photo) => photo.approved).length,
     pendingPhotoCount: photos.filter((photo) => !photo.approved && !photo.rejected)

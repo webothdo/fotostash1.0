@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
+import { X } from "lucide-vue-next";
 import { gsap } from "gsap";
 import {
   IMAGE_SIZES,
@@ -29,6 +30,7 @@ interface MasonryProps {
   hoverScale?: number;
   blurToFocus?: boolean;
   colorShiftOnHover?: boolean;
+  removable?: boolean;
 }
 
 const props = withDefaults(defineProps<MasonryProps>(), {
@@ -40,7 +42,10 @@ const props = withDefaults(defineProps<MasonryProps>(), {
   hoverScale: 0.95,
   blurToFocus: true,
   colorShiftOnHover: false,
+  removable: false,
 });
+
+const emit = defineEmits<{ (event: "remove", item: Item): void }>();
 
 const root = ref<HTMLElement | null>(null);
 const loadedImages = ref<Record<string, boolean>>({});
@@ -136,20 +141,23 @@ onMounted(() => {
     ref="root"
     class="columns-1 gap-4 min-[400px]:columns-2 min-[600px]:columns-3 min-[1000px]:columns-4 min-[1500px]:columns-5"
   >
-    <NuxtLink
+    <div
       v-for="item in items"
       :key="item.id"
-      :to="photoUrl(item)"
-      :aria-label="item.title ? `View ${item.title}` : 'View photo'"
-      data-masonry-item
-      class="group relative mb-4 block break-inside-avoid cursor-pointer overflow-hidden rounded-[10px] shadow-[0px_10px_50px_-10px_rgba(0,0,0,0.2)]"
-      @mouseenter="handleMouseEnter"
-      @mouseleave="handleMouseLeave"
+      class="group relative mb-4 break-inside-avoid"
     >
-      <div
-        class="relative w-full overflow-hidden rounded-[10px] bg-muted"
-        :style="{ aspectRatio: aspectRatio(item) }"
+      <NuxtLink
+        :to="photoUrl(item)"
+        :aria-label="item.title ? `View ${item.title}` : 'View photo'"
+        data-masonry-item
+        class="relative block cursor-pointer overflow-hidden rounded-[10px] shadow-[0px_10px_50px_-10px_rgba(0,0,0,0.2)]"
+        @mouseenter="handleMouseEnter"
+        @mouseleave="handleMouseLeave"
       >
+        <div
+          class="relative w-full overflow-hidden rounded-[10px] bg-muted"
+          :style="{ aspectRatio: aspectRatio(item) }"
+        >
         <div
           v-if="!loadedImages[item.id]"
           class="shimmer absolute inset-0 bg-muted"
@@ -173,18 +181,29 @@ onMounted(() => {
           @load="markLoaded(item.id)"
           @error="markLoaded(item.id)"
         />
-        <div
-          v-if="colorShiftOnHover"
-          class="color-overlay absolute inset-0 bg-gradient-to-tr from-pink-500/50 to-sky-500/50 opacity-0 transition-opacity duration-300 group-hover:opacity-30"
-        />
-        <span
-          v-if="item.approved === false"
-          class="absolute left-2 top-2 rounded-full px-2.5 py-1 text-[11px] font-medium text-white shadow-sm"
-          :class="item.rejected ? 'bg-destructive' : 'bg-amber-500'"
-        >
-          {{ statusLabel(item) }}
-        </span>
-      </div>
-    </NuxtLink>
+          <div
+            v-if="colorShiftOnHover"
+            class="color-overlay absolute inset-0 bg-gradient-to-tr from-pink-500/50 to-sky-500/50 opacity-0 transition-opacity duration-300 group-hover:opacity-30"
+          />
+          <span
+            v-if="item.approved === false"
+            class="absolute left-2 top-2 rounded-full px-2.5 py-1 text-[11px] font-medium text-white shadow-sm"
+            :class="item.rejected ? 'bg-destructive' : 'bg-amber-500'"
+          >
+            {{ statusLabel(item) }}
+          </span>
+        </div>
+      </NuxtLink>
+
+      <button
+        v-if="removable"
+        type="button"
+        class="absolute right-2 top-2 z-10 flex size-8 items-center justify-center rounded-full bg-black/60 text-white opacity-0 shadow-sm backdrop-blur transition-opacity hover:bg-black/80 focus-visible:opacity-100 group-hover:opacity-100"
+        :aria-label="`Remove ${item.title || 'photo'} from this collection`"
+        @click="emit('remove', item)"
+      >
+        <X class="size-4" />
+      </button>
+    </div>
   </div>
 </template>

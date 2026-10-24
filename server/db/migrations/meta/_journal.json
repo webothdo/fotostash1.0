@@ -64,6 +64,13 @@
       "when": 1792883283476,
       "tag": "0008_red_jackal",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "6",
+      "when": 1792883740686,
+      "tag": "0009_jazzy_turbo",
+      "breakpoints": true
     }
   ]
 }

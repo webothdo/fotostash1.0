@@ -31,9 +31,10 @@ export default defineEventHandler(async (event) => {
     });
   }
 
+  const session = await getOptionalKindeUser(event);
+  const viewer = session ? await getLoggedInUser(session.id) : null;
+
   if (!singlePhoto.approved) {
-    const session = await getOptionalKindeUser(event);
-    const viewer = session ? await getLoggedInUser(session.id) : null;
     const canView =
       viewer &&
       (viewer.role === "admin" || viewer.id === singlePhoto.userId);
@@ -46,5 +47,16 @@ export default defineEventHandler(async (event) => {
     }
   }
 
-  return singlePhoto;
+  const [likeCount, isLiked] = await Promise.all([
+    countPhotoLikes(singlePhoto.id),
+    viewer ? isPhotoLiked(viewer.id, singlePhoto.id) : Promise.resolve(false),
+  ]);
+
+  setHeader(event, "cache-control", "private, no-store");
+
+  return {
+    ...singlePhoto,
+    likeCount,
+    isLiked,
+  };
 });
