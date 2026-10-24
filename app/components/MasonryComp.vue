@@ -1,12 +1,5 @@
 <script setup lang="ts">
-import {
-  ref,
-  computed,
-  onMounted,
-  onUnmounted,
-  watchEffect,
-  nextTick,
-} from "vue";
+import { onMounted, ref } from "vue";
 import { gsap } from "gsap";
 
 interface Item {
@@ -14,6 +7,7 @@ interface Item {
   id: string;
   img?: string;
   url: string;
+  title?: string | null;
   height: number;
   width?: number | null;
 }
@@ -41,314 +35,138 @@ const props = withDefaults(defineProps<MasonryProps>(), {
   colorShiftOnHover: false,
 });
 
-const useMedia = (
-  queries: string[],
-  values: number[],
-  defaultValue: number
-) => {
-  // Return default value during SSR
-  if (typeof window === "undefined") {
-    return ref(defaultValue);
-  }
+const root = ref<HTMLElement | null>(null);
+const loadedImages = ref<Record<string, boolean>>({});
 
-  const get = () => {
-    if (typeof window.matchMedia !== "function") return defaultValue;
-    return (
-      values[queries.findIndex((q) => window.matchMedia(q).matches)] ??
-      defaultValue
-    );
-  };
+const imageUrl = (item: Item) => item.img ?? item.url;
+const imageAlt = (item: Item) => item.title ?? "Photo";
 
-  const value = ref<number>(get());
+const hasDimensions = (item: Item): item is Item & { width: number } =>
+  typeof item.width === "number" && item.width > 0 && item.height > 0;
 
-  onMounted(() => {
-    if (typeof window.matchMedia !== "function") return;
+const aspectRatio = (item: Item) =>
+  hasDimensions(item) ? `${item.width} / ${item.height}` : "3 / 2";
 
-    const handler = () => (value.value = get());
-    queries.forEach((q) =>
-      window.matchMedia(q).addEventListener("change", handler)
-    );
+const markLoaded = (id: string) => {
+  loadedImages.value[id] = true;
+};
 
-    onUnmounted(() => {
-      if (typeof window.matchMedia !== "function") return;
-      queries.forEach((q) =>
-        window.matchMedia(q).removeEventListener("change", handler)
-      );
-    });
+const openUrl = (item: Item) => {
+  navigateTo(`/photo/${item.slug ?? item.id}`);
+};
+
+const handleMouseEnter = (event: MouseEvent) => {
+  if (!props.scaleOnHover) return;
+  gsap.to(event.currentTarget as HTMLElement, {
+    scale: props.hoverScale,
+    duration: 0.3,
+    ease: "power2.out",
   });
-
-  return value;
 };
 
-const useMeasure = () => {
-  const containerRef = ref<HTMLDivElement | null>(null);
-  const size = ref({ width: 0, height: 0 });
-  let resizeObserver: ResizeObserver | null = null;
-
-  onMounted(() => {
-    if (!containerRef.value) return;
-
-    resizeObserver = new ResizeObserver(([entry]) => {
-      const { width, height } = entry?.contentRect ?? { width: 0, height: 0 };
-      size.value = { width, height };
-    });
-
-    resizeObserver.observe(containerRef.value);
+const handleMouseLeave = (event: MouseEvent) => {
+  if (!props.scaleOnHover) return;
+  gsap.to(event.currentTarget as HTMLElement, {
+    scale: 1,
+    duration: 0.3,
+    ease: "power2.out",
   });
-
-  onUnmounted(() => {
-    if (resizeObserver) {
-      resizeObserver.disconnect();
-    }
-  });
-
-  return [containerRef, size] as const;
 };
 
-const preloadImages = async (urls: string[]): Promise<void> => {
-  await Promise.all(
-    urls.map(
-      (src) =>
-        new Promise<void>((resolve) => {
-          const img = new Image();
-          img.src = src;
-          img.onload = img.onerror = () => resolve();
-        })
-    )
-  );
-};
+onMounted(() => {
+  if (!root.value) return;
 
-const columns = useMedia(
-  [
-    "(min-width:1500px)",
-    "(min-width:1000px)",
-    "(min-width:600px)",
-    "(min-width:400px)",
-  ],
-  [5, 4, 3, 2],
-  1
-);
-
-const [containerRef, size] = useMeasure();
-const imagesReady = ref(false);
-const hasMounted = ref(false);
-
-const grid = computed(() => {
-  if (!size.value.width) return [];
-  const colHeights = new Array(columns.value).fill(0);
-  const gap = 16;
-  const totalGaps = (columns.value - 1) * gap;
-  const columnWidth = (size.value.width - totalGaps) / columns.value;
-
-  return props.items.map((child) => {
-    const col = colHeights.indexOf(Math.min(...colHeights));
-    const x = col * (columnWidth + gap);
-    // Scale the image height to preserve its aspect-ratio based on the computed column width.
-    // If the original width is not provided, fall back to 300 px (the width used in the demo URLs).
-    const originalWidth = child.width ?? 300;
-    const height = (child.height / originalWidth) * columnWidth;
-    const y = colHeights[col];
-
-    colHeights[col] += height + gap;
-    return { ...child, x, y, w: columnWidth, h: height };
-  });
-});
-
-const gridHeight = computed(() =>
-  grid.value.reduce((height, item) => Math.max(height, item.y + item.h), 0)
-);
-
-const openUrl = (url: string) => {
-  // window.open(url, "_blank", "noopener");
-  navigateTo(`/photo/${url}`);
-};
-
-interface GridItem extends Item {
-  x: number;
-  y: number;
-  w: number;
-  h: number;
-}
-
-const getInitialPosition = (item: GridItem) => {
-  const containerRect = containerRef.value?.getBoundingClientRect();
-  if (!containerRect) return { x: item.x, y: item.y };
-
-  let direction = props.animateFrom;
-  if (props.animateFrom === "random") {
-    const dirs = ["top", "bottom", "left", "right"];
-    direction = dirs[
-      Math.floor(Math.random() * dirs.length)
-    ] as typeof props.animateFrom;
-  }
-
-  switch (direction) {
-    case "top":
-      return { x: item.x, y: -200 };
-    case "bottom":
-      return { x: item.x, y: window.innerHeight + 200 };
-    case "left":
-      return { x: -200, y: item.y };
-    case "right":
-      return { x: window.innerWidth + 200, y: item.y };
-    case "center":
-      return {
-        x: containerRect.width / 2 - item.w / 2,
-        y: containerRect.height / 2 - item.h / 2,
-      };
-    default:
-      return { x: item.x, y: item.y + 100 };
-  }
-};
-
-const handleMouseEnter = (id: string, element: HTMLElement) => {
-  if (props.scaleOnHover) {
-    gsap.to(`[data-key="${id}"]`, {
-      scale: props.hoverScale,
-      duration: 0.3,
-      ease: "power2.out",
-    });
-  }
-  if (props.colorShiftOnHover) {
-    const overlay = element.querySelector(".color-overlay") as HTMLElement;
-    if (overlay) gsap.to(overlay, { opacity: 0.3, duration: 0.3 });
-  }
-};
-
-const handleMouseLeave = (id: string, element: HTMLElement) => {
-  if (props.scaleOnHover) {
-    gsap.to(`[data-key="${id}"]`, {
-      scale: 1,
-      duration: 0.3,
-      ease: "power2.out",
-    });
-  }
-  if (props.colorShiftOnHover) {
-    const overlay = element.querySelector(".color-overlay") as HTMLElement;
-    if (overlay) gsap.to(overlay, { opacity: 0, duration: 0.3 });
-  }
-};
-
-watchEffect(() => {
-  if (import.meta.server) return;
-
-  preloadImages(props.items.map((i) => i.img ?? i.url)).then(() => {
-    imagesReady.value = true;
-  });
-});
-
-watchEffect(() => {
-  if (!imagesReady.value) return;
-
-  const currentGrid = grid.value;
-  void props.items.length;
-  void columns.value;
-  void size.value.width;
-
-  if (!currentGrid.length) return;
-
-  nextTick(() => {
-    currentGrid.forEach((item, index) => {
-      const selector = `[data-key="${item.id}"]`;
-      const animProps = { x: item.x, y: item.y, width: item.w, height: item.h };
-
-      if (!hasMounted.value) {
-        const start = getInitialPosition(item);
-        gsap.fromTo(
-          selector,
-          {
-            opacity: 0,
-            x: start.x,
-            y: start.y,
-            width: item.w,
-            height: item.h,
-            ...(props.blurToFocus && { filter: "blur(10px)" }),
-          },
-          {
-            opacity: 1,
-            ...animProps,
-            ...(props.blurToFocus && { filter: "blur(0px)" }),
-            duration: 0.8,
-            ease: "power3.out",
-            delay: index * props.stagger,
-          }
-        );
-      } else {
-        gsap.to(selector, {
-          ...animProps,
-          duration: props.duration,
-          ease: props.ease,
-          overwrite: "auto",
-        });
+  // Images may finish loading before hydration, so their load event can be missed.
+  root.value
+    .querySelectorAll<HTMLImageElement>("img[data-photo-id]")
+    .forEach((image) => {
+      if (image.complete && image.dataset.photoId) {
+        markLoaded(image.dataset.photoId);
       }
     });
 
-    hasMounted.value = true;
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+  const nodes = root.value.querySelectorAll<HTMLElement>("[data-masonry-item]");
+  if (!nodes.length) return;
+
+  const from: gsap.TweenVars = { opacity: 0 };
+
+  switch (props.animateFrom) {
+    case "top":
+      from.y = -32;
+      break;
+    case "left":
+      from.x = -32;
+      break;
+    case "right":
+      from.x = 32;
+      break;
+    case "center":
+      from.scale = 0.96;
+      break;
+    case "bottom":
+    case "random":
+    default:
+      from.y = 32;
+      break;
+  }
+
+  if (props.blurToFocus) from.filter = "blur(8px)";
+
+  gsap.from(nodes, {
+    ...from,
+    duration: props.duration,
+    stagger: props.stagger,
+    ease: props.ease,
+    clearProps: "opacity,transform,filter",
   });
 });
 </script>
 
 <template>
   <div
-    ref="containerRef"
-    class="relative w-full"
-    :style="gridHeight ? { height: `${gridHeight}px` } : undefined"
+    ref="root"
+    class="columns-1 gap-4 min-[400px]:columns-2 min-[600px]:columns-3 min-[1000px]:columns-4 min-[1500px]:columns-5"
   >
     <div
-      v-if="!grid.length && items.length"
-      class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4"
-      aria-hidden="true"
+      v-for="item in items"
+      :key="item.id"
+      data-masonry-item
+      class="group relative mb-4 break-inside-avoid cursor-pointer overflow-hidden rounded-[10px] shadow-[0px_10px_50px_-10px_rgba(0,0,0,0.2)]"
+      @click="openUrl(item)"
+      @mouseenter="handleMouseEnter"
+      @mouseleave="handleMouseLeave"
     >
       <div
-        v-for="i in 8"
-        :key="`fallback-${i}`"
-        class="shimmer rounded-[10px] bg-muted"
-        :class="i % 3 === 0 ? 'h-56' : i % 2 === 0 ? 'h-40' : 'h-48'"
-      />
-    </div>
-
-    <div
-      v-else-if="!imagesReady"
-      class="pointer-events-none absolute inset-0"
-      aria-hidden="true"
-    >
-      <div
-        v-for="item in grid"
-        :key="`skeleton-${item.id}`"
-        class="shimmer absolute rounded-[10px] bg-muted"
-        :style="{
-          width: `${item.w}px`,
-          height: `${item.h}px`,
-          transform: `translate3d(${item.x}px, ${item.y}px, 0)`,
-        }"
-      />
-    </div>
-
-    <template v-if="imagesReady">
-      <div
-        v-for="item in grid"
-        :key="item.id"
-        :data-key="item.id"
-        class="absolute box-content"
-        :style="{ willChange: 'transform, width, height, opacity' }"
-        @click="openUrl(item.slug ?? item.id)"
-        @mouseenter="
-          (e) => handleMouseEnter(item.id, e.currentTarget as HTMLElement)
-        "
-        @mouseleave="
-          (e) => handleMouseLeave(item.id, e.currentTarget as HTMLElement)
-        "
+        class="relative w-full overflow-hidden rounded-[10px] bg-muted"
+        :style="{ aspectRatio: aspectRatio(item) }"
       >
         <div
-          class="relative w-full h-full bg-cover bg-center cursor-pointer rounded-[10px] shadow-[0px_10px_50px_-10px_rgba(0,0,0,0.2)] transition-all duration-300"
-          :style="{ backgroundImage: `url(${item.url})` }"
-        >
-          <div
-            v-if="colorShiftOnHover"
-            class="color-overlay absolute inset-0 rounded-[10px] bg-gradient-to-tr from-pink-500/50 to-sky-500/50 opacity-0 pointer-events-none"
-          />
-        </div>
+          v-if="!loadedImages[item.id]"
+          class="shimmer absolute inset-0 bg-muted"
+          aria-hidden="true"
+        />
+        <img
+          :data-photo-id="item.id"
+          :src="imageUrl(item)"
+          :alt="imageAlt(item)"
+          :width="item.width ?? undefined"
+          :height="item.height ?? undefined"
+          loading="lazy"
+          class="h-full w-full transition-opacity duration-500"
+          :class="[
+            loadedImages[item.id] ? 'opacity-100' : 'opacity-0',
+            hasDimensions(item) ? 'object-cover' : 'object-contain',
+          ]"
+          @load="markLoaded(item.id)"
+          @error="markLoaded(item.id)"
+        />
+        <div
+          v-if="colorShiftOnHover"
+          class="color-overlay absolute inset-0 bg-gradient-to-tr from-pink-500/50 to-sky-500/50 opacity-0 transition-opacity duration-300 group-hover:opacity-30"
+        />
       </div>
-    </template>
+    </div>
   </div>
 </template>
