@@ -10,12 +10,12 @@ import {
 import { gsap } from "gsap";
 
 interface Item {
-  slug: string;
+  slug?: string | null;
   id: string;
-  img: string;
+  img?: string;
   url: string;
   height: number;
-  width?: number;
+  width?: number | null;
 }
 
 interface MasonryProps {
@@ -226,7 +226,9 @@ const handleMouseLeave = (id: string, element: HTMLElement) => {
 };
 
 watchEffect(() => {
-  preloadImages(props.items.map((i) => i.img)).then(() => {
+  if (import.meta.server) return;
+
+  preloadImages(props.items.map((i) => i.img ?? i.url)).then(() => {
     imagesReady.value = true;
   });
 });
@@ -290,7 +292,7 @@ watchEffect(() => {
       :data-key="item.id"
       class="absolute box-content"
       :style="{ willChange: 'transform, width, height, opacity' }"
-      @click="openUrl(item.slug)"
+      @click="openUrl(item.slug ?? item.id)"
       @mouseenter="
         (e) => handleMouseEnter(item.id, e.currentTarget as HTMLElement)
       "

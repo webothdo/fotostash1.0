@@ -5,5 +5,9 @@
                   https://stackoverflow.com/questions/2083543/modify-a-columns-type-in-sqlite3
 
  Due to that we don't generate migration automatically and it has to be done manually
-*/--> statement-breakpoint
+
+ No-op placeholder: keep a valid statement so libsql-backed migrations can run it.
+*/
+SELECT 1;
+--> statement-breakpoint
 CREATE UNIQUE INDEX `photos_slug_unique` ON `photos` (`slug`);

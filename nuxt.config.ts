@@ -8,7 +8,7 @@ export default defineNuxtConfig({
   css: ["@/assets/css/tailwind.css"],
   shadcn: {
     prefix: "",
-    componentDir: "./app/components/ui",
+    componentDir: "@/components/ui",
   },
   kinde: {
     debug: true,

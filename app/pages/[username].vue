@@ -4,7 +4,7 @@ definePageMeta({
   // path: '/:user([@]\\w+)',
 });
 
-const username = useRoute().params.username;
+const username = String(useRoute().params.username ?? "");
 
 const { data, status, error } = await useFetch(`/api/profile/${username}`);
 </script>
@@ -43,10 +43,10 @@ const { data, status, error } = await useFetch(`/api/profile/${username}`);
     </Card>
     <section id="user-images" class="w-full max-w-5xl">
       <MasonryLoadingComp v-if="status === 'pending'" />
-      <MasonryComp v-if="status === 'success'" :items="data.photos" />
+      <MasonryComp v-if="status === 'success'" :items="data?.photos ?? []" />
       <div
         v-if="
-          status === 'success' && (!data.photos || data.photos.length === 0)
+          status === 'success' && (!data?.photos || data.photos.length === 0)
         "
         class="text-center text-muted-foreground py-12"
       >

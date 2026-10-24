@@ -1,4 +1,7 @@
-import type { ClientOptions, InferSessionFromClient } from "better-auth/client";
+import type {
+  BetterAuthClientOptions,
+  InferSessionFromClient,
+} from "better-auth/client";
 import type { RouteLocationRaw } from "vue-router";
 import { createAuthClient } from "better-auth/vue";
 import type { User } from "better-auth";
@@ -16,7 +19,7 @@ export function useNotAuth() {
     plugins: [usernameClient(), adminClient()],
   });
 
-  const session = useState<InferSessionFromClient<ClientOptions> | null>(
+  const session = useState<InferSessionFromClient<BetterAuthClientOptions> | null>(
     "auth:session",
     () => null
   );
@@ -54,7 +57,7 @@ export function useNotAuth() {
     loggedIn: computed(() => !!session.value),
     signIn: client.signIn,
     signUp: client.signUp,
-    forgetPassword: client.forgetPassword,
+    requestPasswordReset: client.requestPasswordReset,
     resetPassword: client.resetPassword,
     sendVerificationEmail: client.sendVerificationEmail,
     errorCodes: client.$ERROR_CODES,
