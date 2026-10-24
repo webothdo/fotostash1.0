@@ -154,6 +154,10 @@ const grid = computed(() => {
   });
 });
 
+const gridHeight = computed(() =>
+  grid.value.reduce((height, item) => Math.max(height, item.y + item.h), 0)
+);
+
 const openUrl = (url: string) => {
   // window.open(url, "_blank", "noopener");
   navigateTo(`/photo/${url}`);
@@ -285,30 +289,66 @@ watchEffect(() => {
 </script>
 
 <template>
-  <div ref="containerRef" class="relative w-full h-full">
+  <div
+    ref="containerRef"
+    class="relative w-full"
+    :style="gridHeight ? { height: `${gridHeight}px` } : undefined"
+  >
     <div
-      v-for="item in grid"
-      :key="item.id"
-      :data-key="item.id"
-      class="absolute box-content"
-      :style="{ willChange: 'transform, width, height, opacity' }"
-      @click="openUrl(item.slug ?? item.id)"
-      @mouseenter="
-        (e) => handleMouseEnter(item.id, e.currentTarget as HTMLElement)
-      "
-      @mouseleave="
-        (e) => handleMouseLeave(item.id, e.currentTarget as HTMLElement)
-      "
+      v-if="!grid.length && items.length"
+      class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4"
+      aria-hidden="true"
     >
       <div
-        class="relative w-full h-full bg-cover bg-center cursor-pointer rounded-[10px] shadow-[0px_10px_50px_-10px_rgba(0,0,0,0.2)] transition-all duration-300"
-        :style="{ backgroundImage: `url(${item.url})` }"
+        v-for="i in 8"
+        :key="`fallback-${i}`"
+        class="shimmer rounded-[10px] bg-muted"
+        :class="i % 3 === 0 ? 'h-56' : i % 2 === 0 ? 'h-40' : 'h-48'"
+      />
+    </div>
+
+    <div
+      v-else-if="!imagesReady"
+      class="pointer-events-none absolute inset-0"
+      aria-hidden="true"
+    >
+      <div
+        v-for="item in grid"
+        :key="`skeleton-${item.id}`"
+        class="shimmer absolute rounded-[10px] bg-muted"
+        :style="{
+          width: `${item.w}px`,
+          height: `${item.h}px`,
+          transform: `translate3d(${item.x}px, ${item.y}px, 0)`,
+        }"
+      />
+    </div>
+
+    <template v-if="imagesReady">
+      <div
+        v-for="item in grid"
+        :key="item.id"
+        :data-key="item.id"
+        class="absolute box-content"
+        :style="{ willChange: 'transform, width, height, opacity' }"
+        @click="openUrl(item.slug ?? item.id)"
+        @mouseenter="
+          (e) => handleMouseEnter(item.id, e.currentTarget as HTMLElement)
+        "
+        @mouseleave="
+          (e) => handleMouseLeave(item.id, e.currentTarget as HTMLElement)
+        "
       >
         <div
-          v-if="colorShiftOnHover"
-          class="color-overlay absolute inset-0 rounded-[10px] bg-gradient-to-tr from-pink-500/50 to-sky-500/50 opacity-0 pointer-events-none"
-        />
+          class="relative w-full h-full bg-cover bg-center cursor-pointer rounded-[10px] shadow-[0px_10px_50px_-10px_rgba(0,0,0,0.2)] transition-all duration-300"
+          :style="{ backgroundImage: `url(${item.url})` }"
+        >
+          <div
+            v-if="colorShiftOnHover"
+            class="color-overlay absolute inset-0 rounded-[10px] bg-gradient-to-tr from-pink-500/50 to-sky-500/50 opacity-0 pointer-events-none"
+          />
+        </div>
       </div>
-    </div>
+    </template>
   </div>
 </template>

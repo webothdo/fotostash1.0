@@ -3,13 +3,17 @@ const { user } = useAuth();
 </script>
 
 <template>
-  <nav class="flex justify-between align-middle px-4 pt-4">
-    <NuxtLink to="/" class="text-3xl font-bold">fs.</NuxtLink>
-    <div v-if="user?.id" class="flex align-middle gap-3">
+  <nav
+    class="mx-auto flex w-full max-w-7xl items-center justify-between gap-4 px-4 py-4"
+  >
+    <NuxtLink to="/" class="shrink-0 text-3xl font-bold leading-none">
+      fs.
+    </NuxtLink>
+    <div v-if="user?.id" class="flex items-center gap-3">
       <Button as-child>
         <NuxtLink to="/upload">Upload</NuxtLink>
       </Button>
-      <NuxtLink to="/profile">
+      <NuxtLink to="/profile" aria-label="Your profile">
         <Avatar>
           <AvatarImage
             v-if="user?.picture"
@@ -20,15 +24,13 @@ const { user } = useAuth();
         </Avatar>
       </NuxtLink>
     </div>
-    <div v-else>
-      <div class="flex align-middle gap-3">
-        <Button as-child>
-          <NuxtLink to="/api/login" external>Login</NuxtLink>
-        </Button>
-        <Button as-child variant="outline">
-          <NuxtLink to="/api/register" external>Sign up</NuxtLink>
-        </Button>
-      </div>
+    <div v-else class="flex items-center gap-3">
+      <Button as-child>
+        <NuxtLink to="/api/login" external>Login</NuxtLink>
+      </Button>
+      <Button as-child variant="outline">
+        <NuxtLink to="/api/register" external>Sign up</NuxtLink>
+      </Button>
     </div>
   </nav>
 </template>

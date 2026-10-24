@@ -11,7 +11,9 @@ const { data, status, error } = await useFetch(`/api/profile/${username}`);
 
 <template>
   <div class="flex flex-col items-center min-h-screen bg-background">
-    <Card class="w-full max-w-2xl mt-12 mb-8 flex flex-col items-center p-8">
+    <Card
+      class="w-full max-w-2xl mt-6 md:mt-8 mb-8 flex flex-col items-center p-8"
+    >
       <Avatar class="h-[120px] w-[120px] mb-4">
         <AvatarImage
           v-if="data?.picture"

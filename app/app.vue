@@ -4,11 +4,14 @@ import "vue-sonner/style.css";
 </script>
 
 <template>
-  <div class="w-dvw h-dvh px-1">
+  <div class="flex min-h-dvh w-full flex-col px-1">
     <NavbarComp />
     <NuxtLoadingIndicator />
     <NuxtRouteAnnouncer />
-    <NuxtPage />
+    <main class="flex-1">
+      <NuxtPage />
+    </main>
+    <SiteFooter />
     <Toaster />
   </div>
 </template>
