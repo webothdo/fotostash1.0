@@ -26,7 +26,12 @@ export default defineEventHandler(async (event) => {
         message: body.error.message,
       });
     }
-    const isAvailable = await isUsernameAvailable(body.data.username);
+    const loggedInUser = await getLoggedInUser(session.id);
+
+    const isAvailable = await isUsernameAvailable(
+      body.data.username,
+      loggedInUser?.id
+    );
     if (!isAvailable) {
       throw createError({
         statusCode: 400,
@@ -34,13 +39,10 @@ export default defineEventHandler(async (event) => {
       });
     }
 
-    const loggedInUser = await getLoggedInUser(session.id);
-    const removeOldUsername = await removeUsername(loggedInUser?.username!);
-    const photos = await updateUser(loggedInUser?.id!, {
+    const updatedUser = await updateUser(loggedInUser?.id!, {
       username: body.data.username,
     });
-    const added = await addUsername(body.data.username);
-    return photos;
+    return updatedUser;
   } catch (error) {
     throw createError({
       statusCode: 500,

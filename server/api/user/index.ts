@@ -18,14 +18,13 @@ export default defineEventHandler(async (event) => {
       const username = session.given_name
         ? session.given_name + nanoid(6)
         : session.family_name + nanoid(6);
-      const newUser = createUser({
+      await createUser({
         kindeId: session.id,
         username: username,
         picture:
           session.picture ||
           "https://api.dicebear.com/9.x/glass/svg?seed=Eliza",
       });
-      const added = await addUsername(username);
       await sendRedirect(event, "/profile/settings");
     }
     return data;

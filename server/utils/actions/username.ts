@@ -1,22 +1,18 @@
-import { useRedis } from "../useRedis";
+import { useDb } from "../useDb";
 
-export const isUsernameAvailable = async (username: string) => {
-  const redis = useRedis();
-  const isAvailable = await redis.sismember("usernames", username);
-  if (isAvailable === 0) {
+export const isUsernameAvailable = async (
+  username: string,
+  excludeUserId?: string
+) => {
+  const existingUser = await useDb().query.users.findFirst({
+    where: (user, { eq }) => eq(user.username, username),
+    columns: { id: true },
+  });
+
+  if (!existingUser) {
     return true;
   }
-  return false;
-};
 
-export const addUsername = async (username: string): Promise<boolean> => {
-  const redis = useRedis();
-  const added = await redis.sadd("usernames", username);
-  return added === 1;
-};
-
-export const removeUsername = async (username: string): Promise<boolean> => {
-  const redis = useRedis();
-  const removed = await redis.srem("usernames", username);
-  return removed === 1;
+  // A user may keep their current username.
+  return existingUser.id === excludeUserId;
 };

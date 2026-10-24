@@ -1,4 +1,5 @@
 import { isUsernameAvailable } from "~~/server/utils/actions/username";
+import { getLoggedInUser } from "~~/server/utils/actions/user/query";
 
 export default defineEventHandler(async (event) => {
   const username = getQuery(event).username as string;
@@ -18,7 +19,8 @@ export default defineEventHandler(async (event) => {
   }
 
   try {
-    const isAvailable = await isUsernameAvailable(username);
+    const loggedInUser = await getLoggedInUser(session.id);
+    const isAvailable = await isUsernameAvailable(username, loggedInUser?.id);
     return { isAvailable };
   } catch (error) {
     throw createError({
